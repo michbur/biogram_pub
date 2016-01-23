@@ -1,0 +1,49 @@
+---
+title: "biogram: N-Gram Analysis of Biological Sequences"
+author: "Michal Burdukiewicz, Piotr Sobczyk"
+date: "25.01.2015"
+output:
+  ioslides_presentation:
+    widescreen: yes
+  slidy_presentation: default
+---
+
+```{r echo=FALSE,message=FALSE}
+library(ggplot2)
+library(grid)
+library(biogram)
+library(knitr)
+library(DT)
+library(seqinr) 
+library(dplyr)
+#library(rbokeh)
+library(reshape2)
+library(DiagrammeR)
+
+size_mod <- -4
+cool_theme <- theme(plot.background=element_rect(fill = "transparent",
+                                                 colour = "transparent"),
+                    panel.grid.major = element_line(colour="lightgrey", linetype = "dashed"),
+                    panel.background = element_rect(fill = "white",colour = "black"),
+                    legend.background = element_rect(fill="NA"),
+                    legend.position = "right",
+                    axis.text = element_text(size=12 + size_mod),
+                    axis.title.x = element_text(size=16 + size_mod, vjust = -1), 
+                    axis.title.y = element_text(size=16 + size_mod, vjust = 1),
+                    strip.text = element_text(size=12 + size_mod, face = "bold"),
+                    strip.background = element_rect(fill="grey", colour = "black"),
+                    legend.text = element_text(size=13 + size_mod), 
+                    legend.title = element_text(size=17 + size_mod),
+                    plot.title = element_text(size=20 + size_mod))
+
+options(DT.options = list(iDisplayLength = 6, searching = FALSE, bLengthChange = FALSE))
+```
+
+## n-grams (k-mers)
+
+n-grams (k-tuples) are sets of n characters derived from the input sequence(s). They may form continuous sub-sequences or be discontinuous.
+
+
+## QuiPT
+
+**Qui**ck **P**ermutation **T**est
