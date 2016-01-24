@@ -92,13 +92,46 @@
           </hgroup>
   </slide>
 
-<slide class=''><hgroup><h2>n-grams (k-mers)</h2></hgroup><article  id="n-grams-k-mers">
+<slide class=''><hgroup><h2>Introduction</h2></hgroup><article  id="introduction">
 
-<p>n-grams (k-tuples) are sets of n characters derived from the input sequence(s). They may form continuous sub-sequences or be discontinuous.</p>
+<ul>
+<li>curse of dimensionality,</li>
+<li>reduction of alphabets.</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>n-grams</h2></hgroup><article  id="n-grams">
+
+<p>n-grams: continuous or discontinuous sub-sequences of nucleic or protein sequences.</p>
+
+</article></slide><slide class=''><hgroup><h2>Reduction of alphabets</h2></hgroup><article  id="reduction-of-alphabets">
+
+<p>Features related to the 3d structure of proteins:<br/>+ protein folding <span class="cite">(Murphy, Wallqvist, and Levy 2000)</span>,<br/>+ prediction of protein interactions <span class="cite">(Launay et al. 2007)</span>.</p>
+
+</article></slide><slide class=''><hgroup><h2>Methods</h2></hgroup><article  id="methods">
+
+<ul>
+<li>QuiPT (Fisher exact test, indefinitely faster, multiple criterions),</li>
+<li>normalized encoding distance (heuristic to find the best reduced alphabets).</li>
+</ul>
 
 </article></slide><slide class=''><hgroup><h2>QuiPT</h2></hgroup><article  id="quipt">
 
-<p><strong>Qui</strong>ck <strong>P</strong>ermutation <strong>T</strong>est</p></article></slide>
+<p><strong>Qui</strong>ck <strong>P</strong>ermutation <strong>T</strong>est</p>
+
+</article></slide><slide class=''><hgroup><h2>Results</h2></hgroup><article  id="results">
+
+<p>Classification n-grams typical for various mitochondrial genomes.</p>
+
+<p>Phy-Mer: a mitochondrial genome haplogroup-defining algorithm using a k-mer approach, useable also for NGS data <span class="cite">(Navarro-Gomez et al. 2015)</span></p>
+
+<div class="references">
+</article></slide><slide class=''><hgroup><h2>References</h2></hgroup><article  id="references" class="unnumbered">
+
+<p>Launay, Guillaume, Raul Mendez, Shoshana Wodak, and Thomas Simonson. 2007. “Recognizing Protein–protein Interfaces with Empirical Potentials and Reduced Amino Acid Alphabets.” <em>BMC Bioinformatics</em> 8: 270. doi:<a href='http://dx.doi.org/10.1186/1471-2105-8-270' title=''>10.1186/1471-2105-8-270</a>.</p>
+
+<p>Murphy, Lynne Reed, Anders Wallqvist, and Ronald M. Levy. 2000. “Simplified Amino Acid Alphabets for Protein Fold Recognition and Implications for Folding.” <em>Protein Engineering</em> 13 (3): 149–52. doi:<a href='http://dx.doi.org/10.1093/protein/13.3.149' title=''>10.1093/protein/13.3.149</a>.</p>
+
+<p>Navarro-Gomez, Daniel, Jeremy Leipzig, Lishuang Shen, Marie Lott, Alphons P. M. Stassen, Douglas C. Wallace, Janey L. Wiggs, Marni J. Falk, Mannis van Oven, and Xiaowu Gai. 2015. “Phy-Mer: A Novel Alignment-Free and Reference-Independent Mitochondrial Haplogroup Classifier.” <em>Bioinformatics (Oxford, England)</em> 31 (8): 1310–12. doi:<a href='http://dx.doi.org/10.1093/bioinformatics/btu825' title=''>10.1093/bioinformatics/btu825</a>.</p></div></article></slide>
 
 
   <slide class="backdrop"></slide>

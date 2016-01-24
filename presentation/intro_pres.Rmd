@@ -6,6 +6,7 @@ output:
   ioslides_presentation:
     widescreen: yes
   slidy_presentation: default
+bibliography: biogram.bib
 ---
 
 ```{r echo=FALSE,message=FALSE}
@@ -39,11 +40,35 @@ cool_theme <- theme(plot.background=element_rect(fill = "transparent",
 options(DT.options = list(iDisplayLength = 6, searching = FALSE, bLengthChange = FALSE))
 ```
 
-## n-grams (k-mers)
+## Introduction
 
-n-grams (k-tuples) are sets of n characters derived from the input sequence(s). They may form continuous sub-sequences or be discontinuous.
+* curse of dimensionality,
+* reduction of alphabets.
 
+## n-grams
+
+n-grams: continuous or discontinuous sub-sequences of nucleic or protein sequences.
+
+## Reduction of alphabets
+
+Features related to the 3d structure of proteins:  
++ protein folding [@murphy_simplified_2000],  
++ prediction of protein interactions [@launay_recognizing_2007].  
+
+## Methods
+
+* QuiPT (Fisher exact test, indefinitely faster, multiple criterions),
+* normalized encoding distance (heuristic to find the best reduced alphabets).
 
 ## QuiPT
 
 **Qui**ck **P**ermutation **T**est
+
+
+## Results
+
+Classification n-grams typical for various mitochondrial genomes.
+
+Phy-Mer: a mitochondrial genome haplogroup-defining algorithm using a k-mer approach, useable also for NGS data [@navarro-gomez_phy-mer:_2015]
+
+## References
