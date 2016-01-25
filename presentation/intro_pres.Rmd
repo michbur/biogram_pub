@@ -43,19 +43,23 @@ options(DT.options = list(iDisplayLength = 6, searching = FALSE, bLengthChange =
 
 ## Introduction
 
-* curse of dimensionality,
-* reduction of alphabets.
+Aim: facilitate n-gram analysis of biological sequences by reducing the dimensionality of the problem through:  
+
+* filtering features,  
+* reducing amino acid alphabet.  
 
 ## n-grams
 
 n-grams: continuous or discontinuous sub-sequences of nucleic or protein sequences.  
 
 Applications:  
-* determining the family of genomes to which a given genome belongs [@tomovic_n-gram-based_2006].  
+
+* determining the family of genomes to which a given genome belongs [@tomovic_n-gram-based_2006].
 
 ## Reduction of alphabets
 
 Features related to the 3d structure of proteins:  
+
 * protein folding [@murphy_simplified_2000],  
 * prediction of protein interactions [@launay_recognizing_2007].  
 
@@ -151,7 +155,7 @@ kable(group2df(b), caption = "Encoding B")
 ```
 
 
-The encoding distance between both groups is `r calc_ed(a, b)`.  
+The encoding distance between both encodings is `r calc_ed(a, b)`.  
 
 ## Normalized encoding distance 
 
@@ -267,6 +271,7 @@ Phy-Mer: a mitochondrial genome haplogroup-defining algorithm using a k-mer appr
 ## Results
 
 Recognizing features in epitopes [@koch_scrutinizing_2013]:  
+
 * amino acid sequences,  
 * equally long peptides (may use position information),  
 * 8 residues,  
