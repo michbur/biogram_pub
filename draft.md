@@ -1,10 +1,11 @@
 1. Literature: what are n-grams, who used them
  - assumption-free
  - curse of dimensionality
- - reduction of alphabets
 2. Methods:
  - QuiPT (Fisher exact test, indefinitely faster, multiple criterions)
- - normalized encoding distance (heuristic to find the best reduced alphabets)
+ - mention usage of the bit library for maximum computational speed
+ - slam package for sparse encoding of data, work with even very large data sets dealing with RAM constraints
+ - multiple criterions
 3. Results (what?)
 
 How to evaluate QuiPT?  
