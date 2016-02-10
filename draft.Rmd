@@ -1,0 +1,177 @@
+1. Literature: what are n-grams, who used them
+ - assumption-free
+ - curse of dimensionality
+
+2. Methods:
+ - QuiPT (Fisher exact test, indefinitely faster, multiple criteria)
+ - mention usage of the bit library for maximum computational speed
+ - slam package for sparse encoding of data, work with even very large data sets dealing with RAM constraints
+ - multiple criteria
+ - Compute how drastic must be the difference of fractions in both groups.  
+ - Simulation study (motif length, sequence lenth, alphabet length) - sensitivity.
+3. Results (what?)
+
+
+## Methods
+
+### Permutation test
+
+The standard approach when dealing with k-mer data is performing permutation
+test. Consider target $y=(y_1, ..., y_n)$ and feature $x=(x_1, ...., x_n)$.
+We can measure their level of dependence by some crtierion $C(x,y)$.
+When feature comes from positioned k-mer analysis then $x$ is binary.
+We assume that $y$ is also a binary feature.
+We then reshuffle feature and target large number of times and compute
+approximate p-value for dependency between $x$ and $y$.
+
+$$p_{value} \approx \frac{\sum_i^m C(s_i(x), s_i(y))>C(x,y)}{m}$$
+where m is number of permutations, and $s_i$ denotes shuffling in i-th
+permutation.
+
+### Criterions
+
+#### Information Gain
+
+###### Definition - entropy
+For a discrete random variable we define entropy by:
+$$H(X) = - \sum^m p_j log p_j$$
+For a Bernoulli r.v. we get a simplified expression
+$$H(X) = -p \cdot log(p) - (1-p) \cdot log(1-p)$$
+
+###### Definition -  conditional entropy
+For two discrete r.v. X, Y we define average conditional entropy by:
+$$H(Y|X) = \sum_j P(X=v_j) H(Y|X=v_j)$$
+If X and Y are Bernoulli's then:
+$$H(Y|X) = q \cdot H(Y|X=1) + (1-q) \cdot H(Y|X=0)$$
+
+###### Definition - Information gain
+$$IG(Y|X) = H(Y) - H(Y|X)$$
+
+
+#### $\chi^2$
+
+#### Kullback-Leibler
+
+#### Bhattacharyya distance
+
+#### Mahalanobis distance
+
+### Quick Permutation Test - QuiPT
+
+In our application, analysis of n-grams, we are interested in Bernoulli r.v.
+Let us consider the contingency table we get:
+
+| target\\feature | 1 | 0 |
+|:---:|:---:|:---:|
+| 1 | $n_{1,1}$ | $n_{1,0}$ |
+| 0 | $n_{0,1}$ | $n_{0,0}$ |
+
+
+If probability that target equals 1 is $p$ and probability that feature equals
+1 is $q$ and feature and target are independant then each of them has the
+following probabilities
+$$P((Target, Feature) = (1,1)) = p \cdot q$$
+$$P((Target, Feature) = (1,0)) = p \cdot (1-q)$$
+$$P((Target, Feature) = (0,1)) = (1-p) \cdot q$$
+$$P((Target, Feature) = (0,0)) = (1-p) \cdot (1-q)$$
+
+This means that a target-feature can be described as multinomial distribution.
+
+$$ {n \choose n_{1,1}} (p\cdot q)^{n_{1,1}}
+{n - n_{1,1} \choose n_{1,0}} (p\cdot (1-q))^{n_{1,0}}
+{n - n_{1,1} - n_{1,0} \choose n_{0,1}} ((1-p)\cdot q)^{n_{0,1}}
+{n - n_{1,1} - n_{1,0} -n_{0,1}\choose n_{0,0}} ((1-p)\cdot (1-q))^{n_{0,0}}$$
+
+However we have important restriction that $n_{1,\cdot} = n_{1,1} + n_{1,0}$ and
+$n_{\cdot, 1} = n_{1,1} + n_{0,1}$ are known and fixed as they describe the number
+of ,,ones" for target and feature respectively.
+
+This might look very complicated but this restrictions in fact simplifies
+our computation significantly.
+
+Observe that $n_{1,1}$ is from range $[0,min(n_{\cdot, 1}, n_{1, \cdot})]$.
+So we get probability of certain contingency table as conditional distribution,
+as impose restrictions on two parameters $n_{\cdot, 1} $ and $n_{1, \cdot}$
+We can compute IG for each possible value of $n_{1,1}$ and finally we get
+distribution of Information Gain under hypothesis that target and feature
+are independant.
+
+Having exact distribution lets us perform permutation test much quicker as we
+no longer need to perform a large number of replications. Furthermore, by using
+exact test we will get precise values of tails which was not guaranteed with
+random permutations.
+
+We can speed up our algorithm even further. Note that
+since target $y$ is common for testing all k-mer features, test statistics depends only on
+number of positive cases in feature. When we test millions of features, there are just few distributions
+that we need to compute and we take advantage of this.
+
+Furthermore our implementation in R is highly efficient as use libraries **bit**, which speeds up
+computing entropy and information gain, and **slam**, for sparse encoding of data. 
+Thanks to those details **biogram** works with even very large data sets dealing with RAM constraints.
+??? GIVE SOME EXAMPLE OF BIG DATA HANDLED ????
+ 
+###### Relationship with Fisher's exact test
+
+Fisher's exact test is a test for independance in contingency table (mostly $2\times 2$).
+From derivation provided in [citation Lehmann], it becomes obvious that what we did in previous section is
+providing a framework for heuristics in two-tailed Fisher's exact test, for which there is no
+right solution.
+
+#### Simulations
+
+```{r, message=FALSE}
+library(biogram)
+target_feature <- create_feature_target(n11 = 5, n01 = 30, n10 = 5, n00 = 20)
+colSums(target_feature)
+
+dist <- distr_crit(target = target_feature[,1], feature = target_feature[,2])
+m <- matrix(c(5,  5,  30,  20), ncol = 2)
+m
+dhyper(x = 0:10, m = 35, n = 25, k = 10)
+
+fisher.test(x = m, alternative = "t")
+test_features(target_feature[, 1], cbind(target_feature[, 2], target_feature[, 2]))
+```
+
+Let us try to find an example that we can get different results
+
+```{r}
+n11 <- 15
+n10 <- 0
+n01 <- 30
+n00 <- 15
+
+target_feature <- create_feature_target(n11 = n11, n01 = n01, n10 = n10, n00 = n00)
+m <- matrix(c(n11,  n10,  n01,  n00), ncol = 2)
+fisher.test(x = m, alternative = "t")
+test_features(target_feature[, 1], cbind(target_feature[, 2], target_feature[, 2]))
+```
+
+Why is that?
+
+```{r}
+probs <- dhyper(x = 0:(n11+n10), m = n11+n01, n = n10+n00, k = n11+n10)
+probs[8]
+probs[16]
+```
+
+For $n_{11}=7$ we have smaller probability than  $n_{11}=15$. However Information Gain from  $n_{11}=15$ is much higher
+as can be seen in the following plot
+
+```{r, echo=FALSE}
+dist <- distr_crit(target = target_feature[,1], feature = target_feature[,2])
+plot(dist)
+z.df <- attr(dist, "plot_data")
+z.df <- data.frame(cbind(x=0:15,z.df))
+
+which.min(cumsum(sort(z.df$unsort_prob))<0.05)
+indices <- order(z.df$unsort_prob)[1:which.min(cumsum(sort(z.df$unsort_prob))<0.05)]
+
+library(ggplot2)
+ggplot(z.df,aes(x=x,y=unsort_prob))+
+  geom_area(aes(x=x,y=unsort_prob), fill="white", color="black") +
+  geom_ribbon(data=z.df[1:9,], aes(ymin=0, ymax=unsort_prob), colour = "red") +
+  geom_ribbon(data=z.df[15:16,], aes(ymin=0, ymax=unsort_prob), colour = "red")
+  
+```
