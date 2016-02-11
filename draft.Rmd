@@ -118,25 +118,10 @@ From derivation provided in [citation Lehmann], it becomes obvious that what we 
 providing a framework for heuristics in two-tailed Fisher's exact test, for which there is no
 right solution.
 
-#### Simulations
+In fact, QuiPT can give different results than Fisher's exact test as implemented in R.
 
-```{r, message=FALSE}
+```{r, fisher_quipt_setup, message=FALSE}
 library(biogram)
-target_feature <- create_feature_target(n11 = 5, n01 = 30, n10 = 5, n00 = 20)
-colSums(target_feature)
-
-dist <- distr_crit(target = target_feature[,1], feature = target_feature[,2])
-m <- matrix(c(5,  5,  30,  20), ncol = 2)
-m
-dhyper(x = 0:10, m = 35, n = 25, k = 10)
-
-fisher.test(x = m, alternative = "t")
-test_features(target_feature[, 1], cbind(target_feature[, 2], target_feature[, 2]))
-```
-
-Let us try to find an example that we can get different results
-
-```{r}
 n11 <- 15
 n10 <- 0
 n01 <- 30
@@ -148,30 +133,38 @@ fisher.test(x = m, alternative = "t")
 test_features(target_feature[, 1], cbind(target_feature[, 2], target_feature[, 2]))
 ```
 
-Why is that?
+Where does the difference come from?
 
-```{r}
+```{r, echo=FALSE}
+dist <- distr_crit(target = target_feature[,1], feature = target_feature[,2])
 probs <- dhyper(x = 0:(n11+n10), m = n11+n01, n = n10+n00, k = n11+n10)
 probs[8]
 probs[16]
 ```
 
-For $n_{11}=7$ we have smaller probability than  $n_{11}=15$. However Information Gain from  $n_{11}=15$ is much higher
+For $n_{11}=7$ we have smaller probability (`r probs[8]`) than  $n_{11}=15$ - `r probs[16]`. 
+However Information Gain from  $n_{11}=15$ is much higher
 as can be seen in the following plot
 
-```{r, echo=FALSE}
-dist <- distr_crit(target = target_feature[,1], feature = target_feature[,2])
-plot(dist)
+```{r, rejectionPlot, echo=FALSE, fig.align='center', fig.cap="$n=60, n_{1 \\bullet}=15, n_{\\cdot 1}=45$"}
 z.df <- attr(dist, "plot_data")
 z.df <- data.frame(cbind(x=0:15,z.df))
 
-which.min(cumsum(sort(z.df$unsort_prob))<0.05)
-indices <- order(z.df$unsort_prob)[1:which.min(cumsum(sort(z.df$unsort_prob))<0.05)]
+# which.min(cumsum(sort(z.df$unsort_prob))<0.05)
+# indices <- order(z.df$unsort_prob)[1:which.min(cumsum(sort(z.df$unsort_prob))<0.05)]
+
+# indices2 <- 1:which.min(cumsum(z.df$unsort_prob[order(z.df$unsort_criterion, decreasing = T)])<0.05)
 
 library(ggplot2)
+library(latex2exp)
 ggplot(z.df,aes(x=x,y=unsort_prob))+
-  geom_area(aes(x=x,y=unsort_prob), fill="white", color="black") +
-  geom_ribbon(data=z.df[1:9,], aes(ymin=0, ymax=unsort_prob), colour = "red") +
-  geom_ribbon(data=z.df[15:16,], aes(ymin=0, ymax=unsort_prob), colour = "red")
+  geom_density(aes(x=x,y=unsort_prob), color="black", stat = "identity") +
+  geom_ribbon(data=z.df[1:9,], aes(ymin=0, ymax=unsort_prob, fill = "Common rejection", alpha=0.2)) +
+  geom_ribbon(data=z.df[15:16,], aes(ymin=0, ymax=unsort_prob, fill = "Fisher's exact test", alpha=0.2)) +
+  geom_ribbon(data=z.df[9:11,], aes(ymin=0, ymax=unsort_prob, fill = "QuiPT", alpha=0.2)) +
+  scale_fill_discrete("Rejection region") + guides(alpha=FALSE) +
+  xlab(TeX("n_{11}")) + ylab("Probability") +
+  theme(legend.position="bottom") +
+  ggtitle("Rejection regions for independence hypothesis at the level 0.05\nfor Fisher's exact test and QuiPT")
   
 ```
