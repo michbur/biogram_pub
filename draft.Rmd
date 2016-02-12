@@ -16,11 +16,12 @@
 
 ### Permutation test
 
-The standard approach when dealing with k-mer data is performing permutation
-test. Consider target $y=(y_1, ..., y_n)$ and feature $x=(x_1, ...., x_n)$.
-We can measure their level of dependence by some crtierion $C(x,y)$.
-When feature comes from positioned k-mer analysis then $x$ is binary.
-We assume that $y$ is also a binary feature.
+The standard approach to the k-mer filtering is a permutation
+test, which decides if a presence or an absence of a specific k-mer is
+related to the status of the sequence. Consider target $y=(y_1, ..., y_n)$ 
+and feature $x=(x_1, ...., x_n)$. We can measure their level of dependence b
+y some crtierion $C(x,y)$. When feature comes from positioned k-mer analysis 
+then $x$ is binary. We assume that $y$ is also a binary feature.
 We then reshuffle feature and target large number of times and compute
 approximate p-value for dependency between $x$ and $y$.
 
@@ -86,8 +87,12 @@ However we have important restriction that $n_{1,\cdot} = n_{1,1} + n_{1,0}$ and
 $n_{\cdot, 1} = n_{1,1} + n_{0,1}$ are known and fixed as they describe the number
 of ,,ones" for target and feature respectively.
 
-This might look very complicated but this restrictions in fact simplifies
-our computation significantly.
+~~This might look very complicated but this restrictions in fact simplifies
+our computation significantly.~~
+
+The introduction of these restrictions is not an unnecessary complication, but in 
+fact simplifies computations, because we describe a whole confusion matrix using
+only $n_{1,1}$.
 
 Observe that $n_{1,1}$ is from range $[0,min(n_{\cdot, 1}, n_{1, \cdot})]$.
 So we get probability of certain contingency table as conditional distribution,
@@ -110,6 +115,16 @@ Furthermore our implementation in R is highly efficient as use libraries **bit**
 computing entropy and information gain, and **slam**, for sparse encoding of data. 
 Thanks to those details **biogram** works with even very large data sets dealing with RAM constraints.
 ??? GIVE SOME EXAMPLE OF BIG DATA HANDLED ????
+ 
+|  Size|    matrix [bytes] | slam [bytes] |
+|-----:|---------:|----:|
+| 1e+01|      1000| 1032|
+| 1e+04|     80200| 1032|
+| 1e+09|   8000200| 1032|
+| 1e+16| 800000200| 1032|
+
+Caption: Size of data set (a matrix with the number of records equal to the size) in the memory. matrix is 
+a standard R matrix, while slam is the size of the object created using the slam package.
  
 ###### Relationship with Fisher's exact test
 
