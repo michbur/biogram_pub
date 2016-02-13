@@ -2,26 +2,22 @@ library(dplyr)
 
 raw_dat <- read.csv("./data/old_db.csv", skip = 1)
 #filter
-dat <- filter(raw_dat, Date < 2013) %>%
+octamers <- filter(raw_dat, Date < 2013) %>%
   mutate(Description = as.character(Description)) %>%
   mutate(seq_length = nchar(Description)) %>%
-  filter(seq_length == 8) %>%
-  mutate(BindingB = grepl("Positive", dat[["Qualitative.Measure"]])) %>%
-  group_by(Description)
+  filter(seq_length == 8) 
 
-# if concordance is larger tha 0 and smaller than 1, octamer was classified as both positive and negative
-concordance <- sapply(unique(dat[["Description"]]), function(single_octamer) {
-  bindings <- dat[dat[["Description"]] == single_octamer, "BindingB"]
-  sum(bindings)/length(bindings)
-})
+filtered <- octamers %>%
+  mutate(BindingB = grepl("Positive", Qualitative.Measure)) %>%
+  group_by(Description) %>%
+  summarise(conc = mean(BindingB)) %>%
+  filter(conc %in% c(0, 1)) %>%
+  select(Description) %>% unlist
 
-sum(dat[["Description"]] %in% names(which(concordance > 0 & concordance < 1)))
+dat <- octamers %>%
+  filter(Description %in% filtered) %>%
+  mutate(BindingB = grepl("Positive", Qualitative.Measure)) %>%
+  group_by(Description) %>%
+  summarise(target = as.logical(mean(BindingB))) 
 
-processed_dat <- filter(dat, !(Description %in% names(which(concordance > 0 & concordance < 1))))
 
-
-dat[["Description"]]
-length(dat[["Qualitative.Measure"]])
-dat[["Date"]]
-
-table(dat[["Date"]])
