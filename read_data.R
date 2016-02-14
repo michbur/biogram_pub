@@ -39,8 +39,7 @@ bitrigrams <- as.matrix(count_multigrams(ns = c(1, rep(2, 4), rep(3, 3)),
 bitrigrams <- bitrigrams > 0
 storage.mode(bitrigrams) <- "integer"
 
-all_feats <- test_features(targets, bitrigrams)
-imp_feats <- cut(all_feats, breaks = c(0, 0.05, 1))[[1]]
+
 
 fold_list <- lapply(list(pos = which(targets == 1), neg = which(targets == 0)), function(single_n) {
   folded <- cvFolds(length(single_n), K = 5)
@@ -53,5 +52,8 @@ train_dat <- lapply(1L:5, function(fold) {
     data.frame(bitrigrams[fold_list[[2]][fold_list[[2]][, "which"] != fold, "id"], ], tar = "neg")
   )
 })
+
+all_feats <- test_features(targets, bitrigrams)
+imp_feats <- cut(all_feats, breaks = c(0, 0.05, 1))[[1]]
 
 #test_features(targets, bitrigrams[, c("K_0", "L_0")])
