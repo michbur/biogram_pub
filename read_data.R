@@ -1,7 +1,7 @@
 library(seqinr)
 library(dplyr)
 library(biogram)
-
+library(cvTools)
 
 raw_dat <- read.csv("./data/old_db.csv", skip = 1)
 #filter
@@ -29,7 +29,7 @@ seqs <- select(filtered, Description) %>%
   do.call(rbind, .)
 rownames(seqs) <- NULL
 
-targets <- select(filtered, target) %>% unlist
+targets <- select(filtered, target) %>% unlist %>% as.numeric
 
 bitrigrams <- as.matrix(count_multigrams(ns = c(1, rep(2, 4), rep(3, 3)), 
                                          ds = list(0, 0, 1, 2, 3, c(0, 0), c(0, 1), c(1, 0)),
@@ -42,4 +42,16 @@ storage.mode(bitrigrams) <- "integer"
 all_feats <- test_features(targets, bitrigrams)
 imp_feats <- cut(all_feats, breaks = c(0, 0.05, 1))[[1]]
 
-test_features(targets, bitrigrams[, c("K_0", "L_0")])
+fold_list <- lapply(list(pos = which(targets == 1), neg = which(targets == 0)), function(single_n) {
+  folded <- cvFolds(length(single_n), K = 5)
+  data.frame(id = single_n[folded[["subsets"]]], which = folded[["which"]])
+})
+
+train_dat <- lapply(1L:5, function(fold) {
+  rbind(
+    data.frame(bitrigrams[fold_list[[1]][fold_list[[1]][, "which"] != fold, "id"], ], tar = "pos"),
+    data.frame(bitrigrams[fold_list[[2]][fold_list[[2]][, "which"] != fold, "id"], ], tar = "neg")
+  )
+})
+
+#test_features(targets, bitrigrams[, c("K_0", "L_0")])
