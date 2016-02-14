@@ -1,4 +1,7 @@
+library(seqinr)
 library(dplyr)
+library(biogram)
+
 
 raw_dat <- read.csv("./data/old_db.csv", skip = 1)
 #filter
@@ -7,17 +10,36 @@ octamers <- filter(raw_dat, Date < 2013) %>%
   mutate(seq_length = nchar(Description)) %>%
   filter(seq_length == 8) 
 
-filtered <- octamers %>%
+only_sure <- octamers %>%
   mutate(BindingB = grepl("Positive", Qualitative.Measure)) %>%
   group_by(Description) %>%
   summarise(conc = mean(BindingB)) %>%
   filter(conc %in% c(0, 1)) %>%
   select(Description) %>% unlist
 
-dat <- octamers %>%
-  filter(Description %in% filtered) %>%
+filtered <- octamers %>%
+  filter(Description %in% only_sure) %>%
   mutate(BindingB = grepl("Positive", Qualitative.Measure)) %>%
   group_by(Description) %>%
   summarise(target = as.logical(mean(BindingB))) 
 
+seqs <- select(filtered, Description) %>% 
+  unlist %>% 
+  strsplit("") %>% 
+  do.call(rbind, .)
+rownames(seqs) <- NULL
 
+targets <- select(filtered, target) %>% unlist
+
+bitrigrams <- as.matrix(count_multigrams(ns = c(1, rep(2, 4), rep(3, 3)), 
+                                         ds = list(0, 0, 1, 2, 3, c(0, 0), c(0, 1), c(1, 0)),
+                                         seq = seqs,
+                                         u = a()[-1]))
+
+bitrigrams <- bitrigrams > 0
+storage.mode(bitrigrams) <- "integer"
+
+all_feats <- test_features(targets, bitrigrams)
+imp_feats <- cut(all_feats, breaks = c(0, 0.05, 1))[[1]]
+
+test_features(targets, bitrigrams[, c("K_0", "L_0")])
