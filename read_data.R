@@ -2,6 +2,7 @@ library(seqinr)
 library(dplyr)
 library(biogram)
 library(cvTools)
+library(ranger)
 
 raw_dat <- read.csv("./data/old_db.csv", skip = 1)
 #filter
@@ -45,15 +46,27 @@ fold_list <- lapply(list(pos = which(targets == 1), neg = which(targets == 0)), 
   folded <- cvFolds(length(single_n), K = 5)
   data.frame(id = single_n[folded[["subsets"]]], which = folded[["which"]])
 })
-
-train_dat <- lapply(1L:5, function(fold) {
-  rbind(
-    data.frame(bitrigrams[fold_list[[1]][fold_list[[1]][, "which"] != fold, "id"], ], tar = "pos"),
-    data.frame(bitrigrams[fold_list[[2]][fold_list[[2]][, "which"] != fold, "id"], ], tar = "neg")
+lapply(1L:5, function(fold) {
+  train_dat <- rbind(
+    data.frame(bitrigrams[fold_list[[1]][fold_list[[1]][, "which"] != fold, "id"], ], tar = 1),
+    data.frame(bitrigrams[fold_list[[2]][fold_list[[2]][, "which"] != fold, "id"], ], tar = 0)
   )
+  
+  test_dat <- rbind(
+    data.frame(bitrigrams[fold_list[[1]][fold_list[[1]][, "which"] == fold, "id"], ]),
+    data.frame(bitrigrams[fold_list[[2]][fold_list[[2]][, "which"] == fold, "id"], ])
+  )
+  
+  browser()
+  
+  all_feats <- test_features(train_dat[, ncol(train_dat)], train_dat[, -ncol(train_dat)])
+  imp_feats <- cut(all_feats, breaks = c(0, 0.05, 1))[[1]]
+  
+  train_dat[["tar"]] <- factor(train_dat[["tar"]], label = c("neg", "pos"))
+  model <- ranger(tar ~ ., train_dat[, c(na.omit(imp_feats), "tar")], write.forest = TRUE, probability = TRUE)
+  predict(model, test_dat)[["predictions"]][, "pos"]
 })
 
-all_feats <- test_features(targets, bitrigrams)
-imp_feats <- cut(all_feats, breaks = c(0, 0.05, 1))[[1]]
+
 
 #test_features(targets, bitrigrams[, c("K_0", "L_0")])
