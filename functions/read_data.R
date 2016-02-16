@@ -5,6 +5,13 @@ library(cvTools)
 library(ranger)
 library(hmeasure)
 
+calc_perf <- function(true.class, scores, what, threshold = 0.1) {
+  HMeasure(true.class, scores, threshold = threshold)[["metrics"]][[what]]
+}
+
+calc_mcc <- function(TP, TN, FP, FN)
+  (TP*TN - FP*FN)/sqrt((TP + FP)*(TP + FN)*(TN + FP)*(TN + FN))
+
 raw_dat <- read.csv("./data/old_db.csv", skip = 1)
 #filter
 octamers <- filter(raw_dat, Date < 2013) %>%
@@ -17,13 +24,25 @@ only_sure <- octamers %>%
   group_by(Description) %>%
   summarise(conc = mean(BindingB)) %>%
   filter(conc %in% c(0, 1)) %>%
-  select(Description) %>% unlist
+  select(Description) %>% 
+  unlist
+
+# only_sure <- octamers %>%
+#   group_by(Description) %>%
+#   summarise(count_uni = length(unique(Qualitative.Measure))) %>%
+#   filter(count_uni == 1) %>%
+#   select(Description) %>% 
+#   unlist
+
 
 filtered <- octamers %>%
   filter(Description %in% only_sure) %>%
   mutate(BindingB = grepl("Positive", Qualitative.Measure)) %>%
   group_by(Description) %>%
   summarise(target = as.logical(mean(BindingB))) 
+
+
+
 
 seqs <- select(filtered, Description) %>% 
   unlist %>% 
@@ -33,14 +52,14 @@ rownames(seqs) <- NULL
 
 targets <- select(filtered, target) %>% unlist %>% as.numeric
 
-bitrigrams <- as.matrix(count_multigrams(ns = c(1, rep(2, 6), rep(3, 4)), 
-                                         ds = list(0, 0L:6, c(0, 0), c(0, 1), c(1, 0), c(1, 1)),
+bitrigrams <- as.matrix(count_multigrams(ns = c(1, rep(2, 7), rep(3, 4)), 
+                                         ds = c(list(0), 0L:6, list(c(0, 0), c(0, 1), c(1, 0), c(1, 1))),
                                          seq = seqs,
                                          pos = FALSE,
                                          u = a()[-1]))
 
-# bitrigrams <- bitrigrams > 0
-# storage.mode(bitrigrams) <- "integer"
+bitrigrams <- bitrigrams > 0
+storage.mode(bitrigrams) <- "integer"
 
 
 # set.sed(1)
@@ -64,8 +83,8 @@ preds <- do.call(rbind, lapply(1L:5, function(fold) {
     data.frame(bitrigrams[fold_list[["neg"]][fold_list[["neg"]][, "which"] == fold, "id"], ], tar = 0)
   )
   
-  all_feats <- test_features(train_dat[, ncol(train_dat)], train_dat[, -ncol(train_dat)])
-  imp_feats <- cut(all_feats, breaks = c(0, 0.05, 1))[[1]]
+  all_feats <- test_features(train_dat[, ncol(train_dat)], train_dat[, -ncol(train_dat)], adjust = NULL)
+  imp_feats <- cut(all_feats, breaks = c(0, 0.01, 1))[[1]]
   
   train_dat[["tar"]] <- factor(train_dat[["tar"]], label = c("neg", "pos"))
   model <- ranger(tar ~ ., train_dat[, c(na.omit(imp_feats), "tar")], write.forest = TRUE, probability = TRUE)
@@ -73,3 +92,20 @@ preds <- do.call(rbind, lapply(1L:5, function(fold) {
 }))
 
 HMeasure(preds[["tar"]], preds[["pred"]])[["metrics"]]
+
+
+
+group_by(preds, fold) %>%
+  summarise(AUC = calc_perf(tar, pred, "AUC"),
+            Sens = calc_perf(tar, pred, "Sens"),
+            Spec = calc_perf(tar, pred, "Spec"),
+            TP = calc_perf(tar, pred, "TP"),
+            FP = calc_perf(tar, pred, "FP"),
+            TN = calc_perf(tar, pred, "TN"),
+            FN = calc_perf(tar, pred, "FN")) %>%
+  mutate(MCC = calc_mcc(TP, FP, TN, FN))
+
+
+
+  
+  
