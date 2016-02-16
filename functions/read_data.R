@@ -3,6 +3,7 @@ library(dplyr)
 library(biogram)
 library(cvTools)
 library(ranger)
+library(hmeasure)
 
 raw_dat <- read.csv("./data/old_db.csv", skip = 1)
 #filter
@@ -32,41 +33,43 @@ rownames(seqs) <- NULL
 
 targets <- select(filtered, target) %>% unlist %>% as.numeric
 
-bitrigrams <- as.matrix(count_multigrams(ns = c(1, rep(2, 4), rep(3, 3)), 
-                                         ds = list(0, 0, 1, 2, 3, c(0, 0), c(0, 1), c(1, 0)),
+bitrigrams <- as.matrix(count_multigrams(ns = c(1, rep(2, 6), rep(3, 4)), 
+                                         ds = list(0, 0L:6, c(0, 0), c(0, 1), c(1, 0), c(1, 1)),
                                          seq = seqs,
+                                         pos = FALSE,
                                          u = a()[-1]))
 
-bitrigrams <- bitrigrams > 0
-storage.mode(bitrigrams) <- "integer"
+# bitrigrams <- bitrigrams > 0
+# storage.mode(bitrigrams) <- "integer"
 
 
+# set.sed(1)
+# fold_list <- lapply(list(pos = which(targets == 1), neg = which(targets == 0)), function(single_n) {
+#   folded <- cvFolds(length(single_n), K = 5)
+#   data.frame(id = single_n[folded[["subsets"]]], which = folded[["which"]])
+# })
+# save(fold_list, file = "./functions/fold_list.RData")
+load("./functions/fold_list.RData")
 
-fold_list <- lapply(list(pos = which(targets == 1), neg = which(targets == 0)), function(single_n) {
-  folded <- cvFolds(length(single_n), K = 5)
-  data.frame(id = single_n[folded[["subsets"]]], which = folded[["which"]])
-})
-lapply(1L:5, function(fold) {
+#test_features(targets, bitrigrams[, c("K_0", "L_0")])
+
+preds <- do.call(rbind, lapply(1L:5, function(fold) {
   train_dat <- rbind(
-    data.frame(bitrigrams[fold_list[[1]][fold_list[[1]][, "which"] != fold, "id"], ], tar = 1),
-    data.frame(bitrigrams[fold_list[[2]][fold_list[[2]][, "which"] != fold, "id"], ], tar = 0)
+    data.frame(bitrigrams[fold_list[["pos"]][fold_list[["pos"]][, "which"] != fold, "id"], ], tar = 1),
+    data.frame(bitrigrams[fold_list[["neg"]][fold_list[["neg"]][, "which"] != fold, "id"], ], tar = 0)
   )
   
   test_dat <- rbind(
-    data.frame(bitrigrams[fold_list[[1]][fold_list[[1]][, "which"] == fold, "id"], ]),
-    data.frame(bitrigrams[fold_list[[2]][fold_list[[2]][, "which"] == fold, "id"], ])
+    data.frame(bitrigrams[fold_list[["pos"]][fold_list[["pos"]][, "which"] == fold, "id"], ], tar = 1),
+    data.frame(bitrigrams[fold_list[["neg"]][fold_list[["neg"]][, "which"] == fold, "id"], ], tar = 0)
   )
-  
-  browser()
   
   all_feats <- test_features(train_dat[, ncol(train_dat)], train_dat[, -ncol(train_dat)])
   imp_feats <- cut(all_feats, breaks = c(0, 0.05, 1))[[1]]
   
   train_dat[["tar"]] <- factor(train_dat[["tar"]], label = c("neg", "pos"))
   model <- ranger(tar ~ ., train_dat[, c(na.omit(imp_feats), "tar")], write.forest = TRUE, probability = TRUE)
-  predict(model, test_dat)[["predictions"]][, "pos"]
-})
+  data.frame(fold = fold, pred = predict(model, test_dat)[["predictions"]][, "pos"], tar = test_dat[["tar"]])
+}))
 
-
-
-#test_features(targets, bitrigrams[, c("K_0", "L_0")])
+HMeasure(preds[["tar"]], preds[["pred"]])[["metrics"]]
