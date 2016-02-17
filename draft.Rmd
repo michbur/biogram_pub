@@ -14,53 +14,33 @@
 
 ## Methods
 
+The standard approach for filtering k-mer features is a permutation
+test [cite], which verifies if a presence or an absence of a specific k-mer is
+related to the status of the sequence. We propose new framework called QuiPT, an exact
+version of permutation test, which is more accurate, faster and as customizable,
+in terms of statistcs we measure, as permutation test itself.
+
 ### Permutation test
 
-The standard approach to the k-mer filtering is a permutation
-test, which decides if a presence or an absence of a specific k-mer is
-related to the status of the sequence. Consider target $y=(y_1, ..., y_n)$ 
-and feature $x=(x_1, ...., x_n)$. We can measure their level of dependence b
-y some crtierion $C(x,y)$. When feature comes from positioned k-mer analysis 
-then $x$ is binary. We assume that $y$ is also a binary feature.
-We then reshuffle feature and target large number of times and compute
-approximate p-value for dependency between $x$ and $y$.
+In this section let us 
+consider target $y=(y_1, ..., y_n)$ 
+and matrix of features $X\in M_{n\times p}$. More specifically, as we focus on filtering,
+we shall focus on one specific feature $x=(x_1, ...., x_n)$. 
+When $x$ origins from positioned k-mer analysis 
+then it is binary. In this paper we assume that $y$ is also binary.
+
+The standard approach [cite] is to define some measure $C(x,y)$ of dependence 
+between $x$ and $y$. Then in permutation test we reshuffle feature and target indpenedently 
+large number of times and compute
+approximate p-value for how extreme is the dependency between $x$ and $y$ measured with $C(\cdot, \cdot)$.
 
 $$p_{value} \approx \frac{\sum_i^m C(s_i(x), s_i(y))>C(x,y)}{m}$$
 where m is number of permutations, and $s_i$ denotes shuffling in i-th
 permutation.
 
-### Criterions
-
-#### Information Gain
-
-###### Definition - entropy
-For a discrete random variable we define entropy by:
-$$H(X) = - \sum^m p_j log p_j$$
-For a Bernoulli r.v. we get a simplified expression
-$$H(X) = -p \cdot log(p) - (1-p) \cdot log(1-p)$$
-
-###### Definition -  conditional entropy
-For two discrete r.v. X, Y we define average conditional entropy by:
-$$H(Y|X) = \sum_j P(X=v_j) H(Y|X=v_j)$$
-If X and Y are Bernoulli's then:
-$$H(Y|X) = q \cdot H(Y|X=1) + (1-q) \cdot H(Y|X=0)$$
-
-###### Definition - Information gain
-$$IG(Y|X) = H(Y) - H(Y|X)$$
-
-
-#### $\chi^2$
-
-#### Kullback-Leibler
-
-#### Bhattacharyya distance
-
-#### Mahalanobis distance
-
 ### Quick Permutation Test - QuiPT
 
-In our application, analysis of n-grams, we are interested in Bernoulli r.v.
-Let us consider the contingency table we get:
+Let us consider the contingency table we get for $y$ and $x$:
 
 | target\\feature | 1 | 0 |
 |:---:|:---:|:---:|
@@ -87,11 +67,8 @@ However we have important restriction that $n_{1,\cdot} = n_{1,1} + n_{1,0}$ and
 $n_{\cdot, 1} = n_{1,1} + n_{0,1}$ are known and fixed as they describe the number
 of ,,ones" for target and feature respectively.
 
-~~This might look very complicated but this restrictions in fact simplifies
-our computation significantly.~~
-
 The introduction of these restrictions is not an unnecessary complication, but in 
-fact simplifies computations, because we describe a whole confusion matrix using
+fact simplifies computations, because we can describe whole confusion matrix using
 only $n_{1,1}$.
 
 Observe that $n_{1,1}$ is from range $[0,min(n_{\cdot, 1}, n_{1, \cdot})]$.
@@ -104,12 +81,17 @@ are independant.
 Having exact distribution lets us perform permutation test much quicker as we
 no longer need to perform a large number of replications. Furthermore, by using
 exact test we will get precise values of tails which was not guaranteed with
-random permutations.
+random permutations. In fact, suppose we want to perform test with $\alpha=10^{-8}$, which is
+not uncommon value when we adjust for multiple testing - more on that later.
+Even for huge number of permuations $m=10^8$ standard deviation of permutation test estimate
+$\frac{p(1-p)}{m}$ is roughly equal true p-value itself.
 
 We can speed up our algorithm even further. Note that
 since target $y$ is common for testing all k-mer features, test statistics depends only on
-number of positive cases in feature. When we test millions of features, there are just few distributions
-that we need to compute and we take advantage of this.
+number of positive cases in feature $n_{\cdot, 1}$. 
+When we test millions of features, there are just few distributions
+that we need to compute and we take advantage of this. Therefore our complexity of our algorithm
+is roughly equal $n*p$.
 
 Furthermore our implementation in R is highly efficient as use libraries **bit**, which speeds up
 computing entropy and information gain, and **slam**, for sparse encoding of data. 
@@ -180,3 +162,31 @@ ggplot(z.df,aes(x=x,y=unsort_prob))+
   theme(legend.position="bottom") +
   ggtitle("Rejection regions for independence hypothesis at the level 0.01\nfor Fisher's exact test and QuiPT")
 ```
+
+### Criteria
+
+#### Information Gain
+
+###### Definition - entropy
+For a discrete random variable we define entropy by:
+$$H(X) = - \sum^m p_j log p_j$$
+For a Bernoulli r.v. we get a simplified expression
+$$H(X) = -p \cdot log(p) - (1-p) \cdot log(1-p)$$
+
+###### Definition -  conditional entropy
+For two discrete r.v. X, Y we define average conditional entropy by:
+$$H(Y|X) = \sum_j P(X=v_j) H(Y|X=v_j)$$
+If X and Y are Bernoulli's then:
+$$H(Y|X) = q \cdot H(Y|X=1) + (1-q) \cdot H(Y|X=0)$$
+
+###### Definition - Information gain
+$$IG(Y|X) = H(Y) - H(Y|X)$$
+
+
+#### $\chi^2$
+
+#### Kullback-Leibler
+
+#### Bhattacharyya distance
+
+#### Mahalanobis distance
