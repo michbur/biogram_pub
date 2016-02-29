@@ -15,16 +15,24 @@
 ## Methods
 
 The standard approach for filtering k-mer features is a permutation
-test [cite], which verifies if a presence or an absence of a specific k-mer is
-related to the status of the sequence. We propose new framework called QuiPT, an exact
+test [@book{fisher1935design,
+  title={The Design of Experiments},
+  author={Fisher, R.A.},
+  lccn={36004973},
+  url={https://books.google.pl/books?id=-EsNAQAAIAAJ},
+  year={1935},
+  publisher={Oliver and Boyd}
+}
+], which verifies if a presence or an absence of a specific k-mer is
+related to the label of the sequence. We propose new framework called QuiPT, an exact
 version of permutation test, which is more accurate, faster and as customizable,
-in terms of statistcs we measure, as permutation test itself.
+in terms of measure of dependence we use, as permutation test itself.
 
 ### Permutation test
 
-In this section let us 
-consider target $y=(y_1, ..., y_n)$ 
-and matrix of features $X\in M_{n\times p}$. More specifically, as we focus on filtering,
+Let us consider target $y=(y_1, ..., y_n)$ 
+and matrix of features $X\in M_{n\times p}$. More specifically, as we focus on
+a method for filtering k-mer,
 we shall focus on one specific feature $x=(x_1, ...., x_n)$. 
 When $x$ origins from positioned k-mer analysis 
 then it is binary. In this paper we assume that $y$ is also binary.
@@ -40,7 +48,12 @@ permutation.
 
 ### Quick Permutation Test - QuiPT
 
-Let us consider the contingency table we get for $y$ and $x$:
+In this secion we shall outline how one can avoid performing huge number of permutations
+and get exact p-values. The main idea of this approach was previously described in 
+http://www.cytel.co/hs-fs/hub/1670/file-2600444346-pdf/lib/pubs/exact-inference-for-categorical-data.pdf
+and we shall briefly state what is that idea based on, and we show how we managed to speed it up.
+
+Let us consider the contingency table for $y$ and $x$:
 
 | target\\feature | 1 | 0 |
 |:---:|:---:|:---:|
@@ -63,7 +76,7 @@ $$ {n \choose n_{1,1}} (p\cdot q)^{n_{1,1}}
 {n - n_{1,1} - n_{1,0} \choose n_{0,1}} ((1-p)\cdot q)^{n_{0,1}}
 {n - n_{1,1} - n_{1,0} -n_{0,1}\choose n_{0,0}} ((1-p)\cdot (1-q))^{n_{0,0}}$$
 
-However we have important restriction that $n_{1,\cdot} = n_{1,1} + n_{1,0}$ and
+with additional restriction that $n_{1,\cdot} = n_{1,1} + n_{1,0}$ and
 $n_{\cdot, 1} = n_{1,1} + n_{0,1}$ are known and fixed as they describe the number
 of ,,ones" for target and feature respectively.
 
@@ -78,24 +91,29 @@ We can compute IG for each possible value of $n_{1,1}$ and finally we get
 distribution of Information Gain under hypothesis that target and feature
 are independant.
 
-Having exact distribution lets us perform permutation test much quicker as we
-no longer need to perform a large number of replications. Furthermore, by using
-exact test we will get precise values of tails which was not guaranteed with
-random permutations. In fact, suppose we want to perform test with $\alpha=10^{-8}$, which is
+Having exact distribution allows us to perform permutation test much quicker as we
+no longer need large number of replications. Furthermore, by using
+exact test we will get precise values of even in tails of statistic distribution,
+which was not guaranteed with random permutations. 
+In fact, suppose we want to perform test with $\alpha=10^{-8}$, which is
 not uncommon value when we adjust for multiple testing - more on that later.
 Even for huge number of permuations $m=10^8$ standard deviation of permutation test estimate
 $\frac{p(1-p)}{m}$ is roughly equal true p-value itself.
 
-We can speed up our algorithm even further. Note that
+In the context of k-mer data we can speed up our algorithm even further. Note that
 since target $y$ is common for testing all k-mer features, test statistics depends only on
 number of positive cases in feature $n_{\cdot, 1}$. 
-When we test millions of features, there are just few distributions
-that we need to compute and we take advantage of this. Therefore our complexity of our algorithm
+Though we test millions of features, there are just few distributions
+that we need to compute, as usually number of positives in k-mer is small. 
+We take advantage of this fact, and therefore complexity of our algorithm
 is roughly equal $n*p$.
 
-Furthermore our implementation in R is highly efficient as use libraries **bit**, which speeds up
+Furthermore, as we deal with sparse vectors, our implementation in R is optimized by 
+using libraries **bit**, which speeds up
 computing entropy and information gain, and **slam**, for sparse encoding of data. 
-Thanks to those details **biogram** works with even very large data sets dealing with RAM constraints.
+Thanks to those details **biogram** works with even very large data sets, being limited only by
+available RAM.
+
 ??? GIVE SOME EXAMPLE OF BIG DATA HANDLED ????
  
 |  Size|    matrix [bytes] | slam [bytes] |
