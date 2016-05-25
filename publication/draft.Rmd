@@ -15,15 +15,7 @@
 ## Methods
 
 The standard approach for filtering k-mer features is a permutation
-test [@book{fisher1935design,
-  title={The Design of Experiments},
-  author={Fisher, R.A.},
-  lccn={36004973},
-  url={https://books.google.pl/books?id=-EsNAQAAIAAJ},
-  year={1935},
-  publisher={Oliver and Boyd}
-}
-], which verifies if a presence or an absence of a specific k-mer is
+test [@fisher1935design], which verifies if a presence or an absence of a specific k-mer is
 related to the label of the sequence. We propose new framework called QuiPT, an exact
 version of permutation test, which is more accurate, faster and as customizable,
 in terms of measure of dependence we use, as permutation test itself.
