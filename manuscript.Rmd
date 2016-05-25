@@ -17,6 +17,36 @@ csl: mee.csl
 bibliography: biogram.bib
 ---
 
+```{r echo=FALSE,message=FALSE}
+library(ggplot2)
+library(grid)
+library(biogram)
+library(knitr)
+library(DT)
+library(seqinr) 
+library(dplyr)
+library(reshape2)
+library(latex2exp)
+
+size_mod <- -4
+cool_theme <- theme(plot.background=element_rect(fill = "transparent",
+                                                 colour = "transparent"),
+                    panel.grid.major = element_line(colour="lightgrey", linetype = "dashed"),
+                    panel.background = element_rect(fill = "white",colour = "black"),
+                    legend.background = element_rect(fill="NA"),
+                    legend.position = "right",
+                    axis.text = element_text(size=12 + size_mod),
+                    axis.title.x = element_text(size=16 + size_mod, vjust = -1), 
+                    axis.title.y = element_text(size=16 + size_mod, vjust = 1),
+                    strip.text = element_text(size=12 + size_mod, face = "bold"),
+                    strip.background = element_rect(fill="grey", colour = "black"),
+                    legend.text = element_text(size=13 + size_mod), 
+                    legend.title = element_text(size=17 + size_mod),
+                    plot.title = element_text(size=20 + size_mod))
+
+options(DT.options = list(iDisplayLength = 6, searching = FALSE, bLengthChange = FALSE))
+```
+
 # Abstract
 
 *Lorem ipsum dolor sit amet, est ad doctus eligendi scriptorem. Mel erat falli ut. Feugiat legendos adipisci vix at, usu at laoreet argumentum suscipiantur. An eos adhuc aliquip scriptorem, te adhuc dolor liberavisse sea. Ponderum vivendum te nec, id agam brute disputando mei.*
@@ -53,7 +83,7 @@ utilizes more complicated probabilistic framework (Hidden semi-Markov
 model,) but still uses n-gram data for training. 
 
 
-## Methods
+# Methods
 
 The standard approach for filtering k-mer features is a permutation
 test [@fisher1935design] , which verifies if a presence or an absence of a specific k-mer is
@@ -61,7 +91,7 @@ related to the label of the sequence. We propose new framework called QuiPT, an 
 version of permutation test, which is more accurate, faster and as customizable,
 in terms of measure of dependence we use, as permutation test itself.
 
-### Permutation test
+## Permutation test
 
 Let us consider target $y=(y_1, ..., y_n)$ 
 and matrix of features $X\in M_{n\times p}$. More specifically, as we focus on
@@ -79,7 +109,7 @@ $$p_{value} \approx \frac{\sum_i^m C(s_i(x), s_i(y))>C(x,y)}{m}$$
 where m is number of permutations, and $s_i$ denotes shuffling in i-th
 permutation.
 
-### Quick Permutation Test - QuiPT
+## Quick Permutation Test - QuiPT
 
 In this secion we shall outline how one can avoid performing huge number of permutations
 and get exact p-values. The main idea of this approach was previously described in 
@@ -159,7 +189,7 @@ available RAM.
 Caption: Size of data set (a matrix with the number of records equal to the size) in the memory. matrix is 
 a standard R matrix, while slam is the size of the object created using the slam package.
  
-###### Relationship with Fisher's exact test
+### Relationship with Fisher's exact test
 
 Fisher's exact test is a test for independance in contingency table (mostly $2\times 2$).
 From derivation provided in [citation Lehmann], it becomes obvious that what we did in previous section is
@@ -214,34 +244,156 @@ ggplot(z.df,aes(x=x,y=unsort_prob))+
   ggtitle("Rejection regions for independence hypothesis at the level 0.01\nfor Fisher's exact test and QuiPT")
 ```
 
-### Criteria
+## Criteria
 
-#### Information Gain
+### Information Gain
 
-###### Definition - entropy
+##### Definition - entropy
 For a discrete random variable we define entropy by:
 $$H(X) = - \sum^m p_j log p_j$$
 For a Bernoulli r.v. we get a simplified expression
 $$H(X) = -p \cdot log(p) - (1-p) \cdot log(1-p)$$
 
-###### Definition -  conditional entropy
+##### Definition -  conditional entropy
 For two discrete r.v. X, Y we define average conditional entropy by:
 $$H(Y|X) = \sum_j P(X=v_j) H(Y|X=v_j)$$
 If X and Y are Bernoulli's then:
 $$H(Y|X) = q \cdot H(Y|X=1) + (1-q) \cdot H(Y|X=0)$$
 
-###### Definition - Information gain
+##### Definition - Information gain
 $$IG(Y|X) = H(Y) - H(Y|X)$$
 
 
-#### $\chi^2$
+### $\chi^2$
 
-#### Kullback-Leibler
+### Kullback-Leibler
 
-#### Bhattacharyya distance
+### Bhattacharyya distance
 
-#### Mahalanobis distance
+### Mahalanobis distance
 
+## Encoding distance
+
+The encoding distance, as computed per the calc_ed function, between a and b is defined as the minimum number of amino acids that have to be moved between subgroups of encoding to make a identical to b (the order of subgroups in the encoding and amino acids in a group is unimportant).
+
+The encoding distance may be further normalized by a factor reflecting how much moving amino acids between groups altered mean group properties.
+
+```{r, echo = FALSE, message = FALSE, results='asis'}
+group2df <- function(group_list, caption = NULL, label = NULL) {
+  data.frame(ID = 1L:length(group_list), 
+             Groups = sapply(group_list, function(i)
+    paste0(toupper(sort(i)), collapse = ", ")))
+}
+
+a <- list(`1` = "p", 
+          `2` = c("f", "i", "w", "y"), 
+          `3` = c("a", "c", "d", "e", "g", "h", "k", "l", "m", "n", "q", "r", "s", "t", "v"))
+
+kable(group2df(a), caption = "Encoding A")
+```
+
+```{r, echo = FALSE, message = FALSE, results='asis'}
+b <- list(`1` = c("f", "r", "w", "y"), 
+          `2` = c("c", "i", "l", "t", "v"), 
+          `3` = c("a", "d", "e", "g", "h", "k", "m", "n", "p", "q", "s"))
+
+kable(group2df(b), caption = "Encoding B")
+```
+
+The encoding distance between both encodings is `r calc_ed(a, b)`.  
+
+## Normalized encoding distance 
+
+```{r, echo = FALSE, message = FALSE, results='asis'}
+data(aaprop)
+a_prop <- aaprop[c(22, 211), ]
+
+#b_prop <- aa_nprop[na.omit(traits_table[ao, ]), , drop = FALSE]
+
+# must have unified lists of features
+
+coords_a <- lapply(a, function(single_subgroup) rowMeans(a_prop[, single_subgroup, drop = FALSE]))
+coords_b <- lapply(b, function(single_subgroup) rowMeans(a_prop[, single_subgroup, drop = FALSE]))
+
+dat_a <- data.frame(enc = "a", do.call(rbind, coords_a), label = paste0("A", 1L:3))
+dat_b <- data.frame(enc = "b", do.call(rbind, coords_b), label = paste0("B", 1L:3))
+
+dat <- data.frame(do.call(rbind, lapply(1L:nrow(dat_a), function(id) 
+  data.frame(id = id, rbind(do.call(rbind, lapply(1L:3, function(dummy) 
+    dat_a[id, , drop = FALSE])),
+    dat_b)))), pair = c(paste0("d", 1L:3), paste0("d", 1L:3)))
+
+colnames(dat) <- c("id", "enc", "f1", "f2", "label", "pair")
+dat[["id"]] <- paste0("Encoding a\nsubgroup ", dat[["id"]])
+
+
+ggplot(dat, aes(x = f1, y = f2, colour = pair, label = label)) +
+  geom_line() +
+  geom_point(aes(x = f1, y = f2, colour = enc), size = 4) + 
+  facet_wrap(~ id) + 
+  geom_text(aes(x = f1, y = f2, colour = enc, label = label), vjust = 1.5, size = 4) + 
+  scale_color_brewer(palette="Dark2", guide = "none") +
+  cool_theme
+```
+
+
+The figure above represents the distances between groups of encoding **a** (green dots) and groups of encoding **b** (red dots). The position of the dot defined by mean values of specific properties of all amino acids belonging to the group.
+
+
+```{r, echo = FALSE, message = FALSE, results='asis'}
+data(aaprop)
+a_prop <- aaprop[c(22, 211), ]
+
+
+coords_a <- lapply(a, function(single_subgroup) rowMeans(a_prop[, single_subgroup, drop = FALSE]))
+coords_b <- lapply(b, function(single_subgroup) rowMeans(a_prop[, single_subgroup, drop = FALSE]))
+
+dat_a <- data.frame(enc = "a", do.call(rbind, coords_a), label = paste0("A", 1L:3))
+dat_b <- data.frame(enc = "b", do.call(rbind, coords_b), label = paste0("B", 1L:3))
+
+dat <- data.frame(do.call(rbind, lapply(1L:nrow(dat_a), function(id) 
+  data.frame(id = id, rbind(do.call(rbind, lapply(1L:3, function(dummy) 
+    dat_a[id, , drop = FALSE])),
+    dat_b)))), pair = c(paste0("d", 1L:3), paste0("d", 1L:3)))
+
+colnames(dat) <- c("id", "enc", "f1", "f2", "label", "pair")
+dat[["id"]] <- paste0("Encoding a\nsubgroup ", dat[["id"]])
+
+
+ggplot(dat, aes(x = f1, y = f2, colour = pair, label = label)) +
+  geom_line() +
+  geom_point(aes(x = f1, y = f2, colour = enc), size = 4) + 
+  facet_wrap(~ id) + 
+  geom_text(aes(x = f1, y = f2, colour = enc, label = label), vjust = 1.5, size = 4) + 
+  scale_color_brewer(palette="Dark2", guide = "none") +
+  cool_theme
+```
+
+
+```{r, echo = FALSE, message = FALSE, results='asis'}
+tmp <- sapply(coords_a, function(single_coords_a) {
+  distances <- sapply(coords_b, function(single_coords_b) 
+    #vector of distances between groups
+    sqrt(sum((single_coords_a - single_coords_b)^2))
+  )
+  #c(dist = min(distances), id = unname(which.min(distances)))
+  distances
+})
+
+colnames(tmp) <- paste0("Enc a, group ", colnames(tmp))
+rownames(tmp) <- paste0("Enc b, group ", rownames(tmp))
+
+kable(tmp)
+```
+
+
+For each group in encoding **a**, we choose the minimum distance $d_i$ between the group and any group belonging to the encoding **b**. The normalization factor is equal to the sum of minimum distances for each group in **a**.
+
+$$
+n_f = \sum_{i \in 1, 2, 3} \min \left( d_i \right) 
+$$
+
+In the case depicted above, $n_f$ is equal to the sum of `r paste0(round(apply(tmp, 2, min), 4), collapse = ", ")`: `r round(sum(apply(tmp, 2, min)), 4)`.
 
 # Simulations
 
