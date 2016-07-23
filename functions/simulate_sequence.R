@@ -18,21 +18,22 @@ add_single_motif <- function(motif, motif_len, seq, len) {
 # tmp <- sim__single_seq(16, alph)
 # add_single_motif(c("1", "_", "1"), 3, tmp, 16)
 
-simulate_sequences <- function(n_seq, len, u, motif, fraction = 0.5) {
-  motif_len <- length(motif)
+simulate_sequences <- function(n_seq, len, u, motif_l, fraction = 0.5) {
   n_pos <- round(fraction*n_seq, 0)
   
-  t(cbind(sapply(1L:n_pos, function(dummy)
-    add_single_motif(motif, motif_len, sim__single_seq(len, u), len)
-    ),
+  t(cbind(sapply(1L:n_pos, function(dummy) {
+    motif <- sample(motif_l, 1)[[1]]
+    add_single_motif(motif, length(motif), sim__single_seq(len, u), len)
+    }),
     sapply(1L:(n_seq - n_pos), function(dummy)
       sim__single_seq(len, u)
       )
   ))
 }
 
-test_dat <- simulate_sequences(100, 6, alph, c("1", "_", "1"))
+test_dat <- simulate_sequences(100, 6, alph, motif_l = list(c("1", "_", "1"), c("2", "_", "2")))
 ngrams <- as.matrix(count_ngrams(test_dat, 3, u = alph))
 ngrams <- ngrams > 0
 storage.mode(ngrams) <- "integer"
 test_res <- test_features(ngrams, target = c(rep(1, 50), rep(0, 50)))
+cut(test_res, breaks = c(0, 0.05, 1))[[1]]
