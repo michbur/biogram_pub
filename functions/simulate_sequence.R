@@ -31,9 +31,9 @@ simulate_sequences <- function(n_seq, len, u, motif_l, fraction = 0.5) {
   ))
 }
 
-test_dat <- simulate_sequences(100, 6, alph, motif_l = list(c("1", "_", "1"), c("2", "_", "2")))
+test_dat <- simulate_sequences(1000, 6, alph, motif_l = list(c("1", "_", "1"), c("2", "_", "2")))
 ngrams <- as.matrix(count_ngrams(test_dat, 3, u = alph))
 ngrams <- ngrams > 0
 storage.mode(ngrams) <- "integer"
-test_res <- test_features(ngrams, target = c(rep(1, 50), rep(0, 50)))
+test_res <- test_features(ngrams, target = c(rep(1, 500), rep(0, 500)))
 cut(test_res, breaks = c(0, 0.05, 1))[[1]]
