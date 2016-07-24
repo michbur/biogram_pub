@@ -31,9 +31,22 @@ simulate_sequences <- function(n_seq, len, u, motif_l, fraction = 0.5) {
   ))
 }
 
+generate_motif <- function(u) {
+  ns <- c(1, rep(2, 4), rep(3, 3))
+  ds <- list(0, 0, 1, 2, 3, c(0, 0), c(0, 1), c(1, 0))
+  
+  ngram_id <- sample(1L:8, 1)
+  
+  
+  n <- ns[ngram_id]
+  d <- ds[[ngram_id]]
+  list(n, d)
+}
+
 test_dat <- simulate_sequences(1000, 6, alph, motif_l = list(c("1", "_", "1"), c("2", "_", "2")))
-ngrams <- as.matrix(count_ngrams(test_dat, 3, u = alph))
-ngrams <- ngrams > 0
-storage.mode(ngrams) <- "integer"
-test_res <- test_features(ngrams, target = c(rep(1, 500), rep(0, 500)))
-cut(test_res, breaks = c(0, 0.05, 1))[[1]]
+test_res <- test_features(binarize(count_multigrams(test_dat,
+                                                    ns = c(1, rep(2, 4), rep(3, 3)), 
+                                                    ds = list(0, 0, 1, 2, 3, c(0, 0), c(0, 1), c(1, 0)),
+                                                              u = alph)), 
+                          target = c(rep(1, 500), rep(0, 500)))
+data.frame(test_res)
