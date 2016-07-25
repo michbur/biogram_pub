@@ -46,6 +46,9 @@ generate_motif <- function(u, n_motif) {
   lapply(1L:n_motif, function(dummy) generate_single_motif(u))
 }
 
+# number of positive and negative sequences
+n_seq <- 500
+  
 # define alphabet
 alph <- as.character(1L:4)
 
@@ -60,7 +63,7 @@ test_res <- test_features(binarize(count_multigrams(test_dat,
                                                     ns = c(1, rep(2, 4), rep(3, 3)), 
                                                     ds = list(0, 0, 1, 2, 3, c(0, 0), c(0, 1), c(1, 0)),
                                                               u = alph)), 
-                          target = c(rep(1, 500), rep(0, 500)))
+                          target = c(rep(1, n_seq), rep(0, n_seq)))
 res_df <- data.frame(test_res)
 
 res_df[["motif"]] <- res_df[["ngram"]] %in% code_ngrams(sapply(motifs, paste0, collapse = ""))
