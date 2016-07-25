@@ -1,8 +1,5 @@
 library(biogram)
 
-# alphabet
-alph <- as.character(1L:4)
-
 sim__single_seq <- function(len, u)
   sample(u, size = len, replace = TRUE)
 
@@ -31,22 +28,40 @@ simulate_sequences <- function(n_seq, len, u, motif_l, fraction = 0.5) {
   ))
 }
 
-generate_motif <- function(u) {
-  ns <- c(1, rep(2, 4), rep(3, 3))
-  ds <- list(0, 0, 1, 2, 3, c(0, 0), c(0, 1), c(1, 0))
+generate_single_motif <- function(u) {
+  ns <- c(rep(2, 4), rep(3, 3))
+  ds <- list(0, 1, 2, 3, c(0, 0), c(0, 1), c(1, 0))
   
-  ngram_id <- sample(1L:8, 1)
-  
+  ngram_id <- sample(1L:7, 1)
   
   n <- ns[ngram_id]
   d <- ds[[ngram_id]]
-  list(n, d)
+  
+  c(unlist(lapply(1L:length(d), function(d_id) {
+    c(sample(u, 1), rep("_", d[d_id]))
+  })), sample(u, 1))
 }
 
-test_dat <- simulate_sequences(1000, 6, alph, motif_l = list(c("1", "_", "1"), c("2", "_", "2")))
+generate_motif <- function(u, n_motif) {
+  lapply(1L:n_motif, function(dummy) generate_single_motif(u))
+}
+
+# define alphabet
+alph <- as.character(1L:4)
+
+# randomly generate motifs
+motifs <- generate_motif(alph, 5)
+
+# generate sequence data
+test_dat <- simulate_sequences(1000, 6, alph, motif_l = motifs)
+
+# perform QuiPT
 test_res <- test_features(binarize(count_multigrams(test_dat,
                                                     ns = c(1, rep(2, 4), rep(3, 3)), 
                                                     ds = list(0, 0, 1, 2, 3, c(0, 0), c(0, 1), c(1, 0)),
                                                               u = alph)), 
                           target = c(rep(1, 500), rep(0, 500)))
-data.frame(test_res)
+res_df <- data.frame(test_res)
+
+res_df[["signif"]] <- res_df[["ngram"]] %in% code_ngrams(sapply(motifs, paste0, collapse = ""))
+res_df
