@@ -63,5 +63,5 @@ test_res <- test_features(binarize(count_multigrams(test_dat,
                           target = c(rep(1, 500), rep(0, 500)))
 res_df <- data.frame(test_res)
 
-res_df[["signif"]] <- res_df[["ngram"]] %in% code_ngrams(sapply(motifs, paste0, collapse = ""))
+res_df[["motif"]] <- res_df[["ngram"]] %in% code_ngrams(sapply(motifs, paste0, collapse = ""))
 res_df
