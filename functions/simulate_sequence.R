@@ -36,3 +36,4 @@ ngrams <- as.matrix(count_ngrams(test_dat, 3, u = alph))
 ngrams <- ngrams > 0
 storage.mode(ngrams) <- "integer"
 test_res <- test_features(ngrams, target = c(rep(1, 50), rep(0, 50)))
+cut(test_res, breaks = c(0, 0.05, 1))
