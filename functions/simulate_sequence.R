@@ -49,6 +49,9 @@ generate_motif <- function(u, n_motif) {
 # number of positive and negative sequences
 n_seq <- 500
   
+# length of sequence
+l_seq <- 6
+
 # define alphabet
 alph <- as.character(1L:4)
 
@@ -56,7 +59,7 @@ alph <- as.character(1L:4)
 motifs <- generate_motif(alph, 5)
 
 # generate sequence data
-test_dat <- simulate_sequences(1000, 6, alph, motif_l = motifs)
+test_dat <- simulate_sequences(n_seq*2, l_seq, alph, motif_l = motifs)
 
 # perform QuiPT
 test_res <- test_features(binarize(count_multigrams(test_dat,
