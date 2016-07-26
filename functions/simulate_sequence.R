@@ -55,19 +55,26 @@ l_seq <- 6
 # define alphabet
 alph <- as.character(1L:4)
 
-# randomly generate motifs
-motifs <- generate_motif(alph, 5)
 
-# generate sequence data
-test_dat <- simulate_sequences(n_seq*2, l_seq, alph, motif_l = motifs)
+test_quipt <- function(n_seq, l_seq) {
+  # randomly generate motifs
+  motifs <- generate_motif(alph, 5)
+  
+  # generate sequence data
+  test_dat <- simulate_sequences(n_seq*2, l_seq, alph, motif_l = motifs)
+  
+  # perform QuiPT
+  test_res <- test_features(binarize(count_multigrams(test_dat,
+                                                      ns = c(1, rep(2, 4), rep(3, 3)), 
+                                                      ds = list(0, 0, 1, 2, 3, c(0, 0), c(0, 1), c(1, 0)),
+                                                      u = alph)), 
+                            target = c(rep(1, n_seq), rep(0, n_seq)))
+  res_df <- data.frame(test_res)
+  
+  res_df[["motif"]] <- res_df[["ngram"]] %in% code_ngrams(sapply(motifs, paste0, collapse = ""))
+  res_df
+}
 
-# perform QuiPT
-test_res <- test_features(binarize(count_multigrams(test_dat,
-                                                    ns = c(1, rep(2, 4), rep(3, 3)), 
-                                                    ds = list(0, 0, 1, 2, 3, c(0, 0), c(0, 1), c(1, 0)),
-                                                              u = alph)), 
-                          target = c(rep(1, n_seq), rep(0, n_seq)))
-res_df <- data.frame(test_res)
+test_quipt(500, 6)
 
-res_df[["motif"]] <- res_df[["ngram"]] %in% code_ngrams(sapply(motifs, paste0, collapse = ""))
-res_df
+# analyse quipt must consider p-value adjustment
