@@ -87,4 +87,20 @@ l_seq <- 8
 
 res <- test_quipt(n_seq, l_seq)
 
-# analyse quipt must consider p-value adjustment
+# p-values of motifs
+filter(res, motif)
+
+# n-gram of interest
+noi <- grepl(decode_ngrams(filter(res, motif)[["ngram"]])[1], decode_ngrams(res[["ngram"]]))
+
+mean(res[noi, "p.value"] < 0.05, na.rm = TRUE)
+sum(res[noi, "p.value"] < 0.05, na.rm = TRUE)
+
+mean(res[!noi, "p.value"] < 0.05, na.rm = TRUE)
+sum(res[!noi, "p.value"] < 0.05, na.rm = TRUE)
+
+mean(res[noi, "p.value.adj"] < 0.05, na.rm = TRUE)
+sum(res[noi, "p.value.adj"] < 0.05, na.rm = TRUE)
+
+mean(res[!noi, "p.value.adj"] < 0.05, na.rm = TRUE)
+sum(res[!noi, "p.value.adj"] < 0.05, na.rm = TRUE)
