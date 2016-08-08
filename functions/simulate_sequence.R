@@ -1,7 +1,7 @@
 library(biogram)
 library(dplyr)
 
-sim__single_seq <- function(len, u)
+sim_single_seq <- function(len, u)
   sample(u, size = len, replace = TRUE)
 
 add_single_motif <- function(motif, motif_len, seq, len) {
@@ -13,7 +13,7 @@ add_single_motif <- function(motif, motif_len, seq, len) {
   seq
 }
 
-# tmp <- sim__single_seq(16, alph)
+# tmp <- sim_single_seq(16, alph)
 # add_single_motif(c("1", "_", "1"), 3, tmp, 16)
 
 simulate_sequences <- function(n_seq, len, u, motif_l, fraction = 0.5) {
@@ -21,10 +21,10 @@ simulate_sequences <- function(n_seq, len, u, motif_l, fraction = 0.5) {
   
   t(cbind(sapply(1L:n_pos, function(dummy) {
     motif <- sample(motif_l, 1)[[1]]
-    add_single_motif(motif, length(motif), sim__single_seq(len, u), len)
+    add_single_motif(motif, length(motif), sim_single_seq(len, u), len)
   }),
   sapply(1L:(n_seq - n_pos), function(dummy)
-    sim__single_seq(len, u)
+    sim_single_seq(len, u)
   )
   ))
 }
@@ -87,20 +87,30 @@ l_seq <- 8
 
 res <- test_quipt(n_seq, l_seq)
 
-# p-values of motifs
-filter(res, motif)
-
-# n-gram of interest
-noi <- grepl(decode_ngrams(filter(res, motif)[["ngram"]])[1], decode_ngrams(res[["ngram"]]))
-
-mean(res[noi, "p.value"] < 0.05, na.rm = TRUE)
-sum(res[noi, "p.value"] < 0.05, na.rm = TRUE)
-
-mean(res[!noi, "p.value"] < 0.05, na.rm = TRUE)
-sum(res[!noi, "p.value"] < 0.05, na.rm = TRUE)
-
-mean(res[noi, "p.value.adj"] < 0.05, na.rm = TRUE)
-sum(res[noi, "p.value.adj"] < 0.05, na.rm = TRUE)
-
-mean(res[!noi, "p.value.adj"] < 0.05, na.rm = TRUE)
-sum(res[!noi, "p.value.adj"] < 0.05, na.rm = TRUE)
+lapply(filter(res, motif)[["ngram"]], function(single_motif) {
+  # n-gram of interest
+  noi <- grepl(decode_ngrams(single_motif), decode_ngrams(res[["ngram"]]))
+  # remove from the data the exact motif
+  only_others <- res[single_motif != res[["ngram"]], ]
+  
+  data.frame(motif = single_motif, 
+             p.value = filter(res, ngram == single_motif)[["p.value"]],
+             p.value.adj = filter(res, ngram == single_motif)[["p.value.adj"]],
+             
+             # n-grams with the motif
+             f.pos = mean(only_others[noi, "p.value"] < 0.05, na.rm = TRUE),
+             n.pos = sum(only_others[noi, "p.value"] < 0.05, na.rm = TRUE),
+             
+             # n-grams without the motif
+             n.neg = sum(only_others[!noi, "p.value"] < 0.05, na.rm = TRUE),
+             
+             # n-grams with the motif (adjusted p-value)
+             f.pos.adj = mean(only_others[noi, "p.value.adj"] < 0.05, na.rm = TRUE),
+             n.pos.adj = sum(only_others[noi, "p.value.adj"] < 0.05, na.rm = TRUE),
+             
+             # n-grams without the motif (adjusted p-value)
+             f.neg.adj = mean(only_others[!noi, "p.value.adj"] < 0.05, na.rm = TRUE),
+             n.neg.adj = sum(only_others[!noi, "p.value.adj"] < 0.05, na.rm = TRUE)
+  )
+}) %>% 
+  do.call(rbind, .)
