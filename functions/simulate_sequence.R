@@ -101,19 +101,20 @@ lapply(c(8, 12), function(l_seq) {
                p.value.adj = filter(res, ngram == single_motif)[["p.value.adj"]],
                
                # n-grams with the motif
-               f.pos = mean(only_others[noi, "p.value"] < 0.05, na.rm = TRUE),
-               n.pos = sum(only_others[noi, "p.value"] < 0.05, na.rm = TRUE),
+               n.pos05 = sum(only_others[noi, "p.value"] < 0.05, na.rm = TRUE),
+               n.pos001 = sum(only_others[noi, "p.value"] < 0.001, na.rm = TRUE),
                
                # n-grams without the motif
-               n.neg = sum(only_others[!noi, "p.value"] < 0.05, na.rm = TRUE),
+               n.neg05 = sum(only_others[!noi, "p.value"] < 0.05, na.rm = TRUE),
+               n.neg001 = sum(only_others[!noi, "p.value"] < 0.001, na.rm = TRUE),
                
                # n-grams with the motif (adjusted p-value)
-               f.pos.adj = mean(only_others[noi, "p.value.adj"] < 0.05, na.rm = TRUE),
-               n.pos.adj = sum(only_others[noi, "p.value.adj"] < 0.05, na.rm = TRUE),
+               n.pos.adj05 = sum(only_others[noi, "p.value.adj"] < 0.05, na.rm = TRUE),
+               n.pos.adj001 = sum(only_others[noi, "p.value.adj"] < 0.001, na.rm = TRUE),
                
                # n-grams without the motif (adjusted p-value)
-               f.neg.adj = mean(only_others[!noi, "p.value.adj"] < 0.05, na.rm = TRUE),
-               n.neg.adj = sum(only_others[!noi, "p.value.adj"] < 0.05, na.rm = TRUE)
+               n.neg.adj05 = sum(only_others[!noi, "p.value.adj"] < 0.05, na.rm = TRUE),
+               n.neg.adj001 = sum(only_others[!noi, "p.value.adj"] < 0.001, na.rm = TRUE)
     )
   }) %>% 
     do.call(rbind, .)
