@@ -99,6 +99,9 @@ lapply(c(8, 12), function(l_seq) {
                motif = single_motif, 
                p.value = filter(res, ngram == single_motif)[["p.value"]],
                p.value.adj = filter(res, ngram == single_motif)[["p.value.adj"]],
+              
+               # number of the n-grams of interest
+               nnoi = sum(noi),
                
                # n-grams with the motif
                n.pos05 = sum(only_others[noi, "p.value"] < 0.05, na.rm = TRUE),
