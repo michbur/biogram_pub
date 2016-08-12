@@ -94,15 +94,11 @@ lapply(c(8, 12), function(l_seq) {
   lapply(c("ig", "kl", "cs"), function(single_criterion) {
     res <- test_quipt(dat, n_seq, criterion, motifs)
     
-    browser()
-    
     lapply(filter(res, motif)[["ngram"]], function(single_motif) {
       # n-gram of interest
       noi <- grepl(decode_ngrams(single_motif), decode_ngrams(res[["ngram"]]))
       # remove from the data the exact motif
       only_others <- res[single_motif != res[["ngram"]], ]
-      
-      browser()
       
       data.frame(l_seq = l_seq,
                  motif = single_motif, 
