@@ -54,10 +54,7 @@ generate_motif <- function(u, n_motif) {
 alph <- as.character(1L:4)
 
 
-test_quipt <- function(n_seq, l_seq) {
-  # randomly generate motifs
-  motifs <- generate_motif(alph, 5)
-  
+generate_seqs <- function(n_seq, l_seq, motifs) {
   # generate sequence data
   test_dat <- simulate_sequences(n_seq*2, l_seq, alph, motif_l = motifs)
   
@@ -67,17 +64,20 @@ test_quipt <- function(n_seq, l_seq) {
                                ds = c(0, as.list(0L:5), 
                                       expand.grid(0L:2, 0L:2)  %>% split(1L:nrow(.))),
                                u = alph) %>% 
-    binarize() %>% 
-    test_features(target = c(rep(1, n_seq), rep(0, n_seq)), features = .)
+    binarize() 
+}
+
+
+test_quipt <- function(simulated_seqs, n_seq, criterion, motifs) {
+  test_features(target = c(rep(1, n_seq), rep(0, n_seq)), features = simulated_seqs)
   res_df <- data.frame(test_res)
   
   data.frame(#n_seq = n_seq, 
-             #l_seq = l_seq, 
-             res_df, 
-             motif = res_df[["ngram"]] %in% code_ngrams(sapply(motifs, paste0, collapse = "")),
-             p.value.adj = p.adjust(res_df[["p.value"]], "BH"))
+    #l_seq = l_seq, 
+    res_df, 
+    motif = res_df[["ngram"]] %in% code_ngrams(sapply(motifs, paste0, collapse = "")),
+    p.value.adj = p.adjust(res_df[["p.value"]], "BH"))
 }
-
 
 # number of positive and negative sequences
 n_seq <- 500
@@ -85,41 +85,50 @@ n_seq <- 500
 # length of sequence
 l_seq <- 8
 
+
 # lapply(c(8, 12, 16, 20), function(l_seq) {
 lapply(c(8, 12), function(l_seq) {
-  res <- test_quipt(n_seq, l_seq)
+  motifs <- generate_motif(alph, 5)
+  dat <- generate_seqs(n_seq, l_seq, motifs)
   
-  lapply(filter(res, motif)[["ngram"]], function(single_motif) {
-    # n-gram of interest
-    noi <- grepl(decode_ngrams(single_motif), decode_ngrams(res[["ngram"]]))
-    # remove from the data the exact motif
-    only_others <- res[single_motif != res[["ngram"]], ]
+  lapply(c("ig", "kl", "cs"), function(single_criterion) {
+    res <- test_quipt(dat, n_seq, criterion, motifs)
     
-    data.frame(l_seq = l_seq,
-               motif = single_motif, 
-               p.value = filter(res, ngram == single_motif)[["p.value"]],
-               p.value.adj = filter(res, ngram == single_motif)[["p.value.adj"]],
-              
-               # number of the n-grams of interest
-               nnoi = sum(noi),
-               
-               # n-grams with the motif
-               n.pos05 = sum(only_others[noi, "p.value"] < 0.05, na.rm = TRUE),
-               n.pos001 = sum(only_others[noi, "p.value"] < 0.001, na.rm = TRUE),
-               
-               # n-grams without the motif
-               n.neg05 = sum(only_others[!noi, "p.value"] < 0.05, na.rm = TRUE),
-               n.neg001 = sum(only_others[!noi, "p.value"] < 0.001, na.rm = TRUE),
-               
-               # n-grams with the motif (adjusted p-value)
-               n.pos.adj05 = sum(only_others[noi, "p.value.adj"] < 0.05, na.rm = TRUE),
-               n.pos.adj001 = sum(only_others[noi, "p.value.adj"] < 0.001, na.rm = TRUE),
-               
-               # n-grams without the motif (adjusted p-value)
-               n.neg.adj05 = sum(only_others[!noi, "p.value.adj"] < 0.05, na.rm = TRUE),
-               n.neg.adj001 = sum(only_others[!noi, "p.value.adj"] < 0.001, na.rm = TRUE)
-    )
-  }) %>% 
-    do.call(rbind, .)
-}) %>% 
-  do.call(rbind, .)
+    browser()
+    
+    lapply(filter(res, motif)[["ngram"]], function(single_motif) {
+      # n-gram of interest
+      noi <- grepl(decode_ngrams(single_motif), decode_ngrams(res[["ngram"]]))
+      # remove from the data the exact motif
+      only_others <- res[single_motif != res[["ngram"]], ]
+      
+      browser()
+      
+      data.frame(l_seq = l_seq,
+                 motif = single_motif, 
+                 p.value = filter(res, ngram == single_motif)[["p.value"]],
+                 p.value.adj = filter(res, ngram == single_motif)[["p.value.adj"]],
+                 criterion = single_criterion,
+                 
+                 # number of the n-grams of interest
+                 nnoi = sum(noi),
+                 
+                 # n-grams with the motif
+                 n.pos05 = sum(only_others[noi, "p.value"] < 0.05, na.rm = TRUE),
+                 n.pos001 = sum(only_others[noi, "p.value"] < 0.001, na.rm = TRUE),
+                 
+                 # n-grams without the motif
+                 n.neg05 = sum(only_others[!noi, "p.value"] < 0.05, na.rm = TRUE),
+                 n.neg001 = sum(only_others[!noi, "p.value"] < 0.001, na.rm = TRUE),
+                 
+                 # n-grams with the motif (adjusted p-value)
+                 n.pos.adj05 = sum(only_others[noi, "p.value.adj"] < 0.05, na.rm = TRUE),
+                 n.pos.adj001 = sum(only_others[noi, "p.value.adj"] < 0.001, na.rm = TRUE),
+                 
+                 # n-grams without the motif (adjusted p-value)
+                 n.neg.adj05 = sum(only_others[!noi, "p.value.adj"] < 0.05, na.rm = TRUE),
+                 n.neg.adj001 = sum(only_others[!noi, "p.value.adj"] < 0.001, na.rm = TRUE)
+      )
+    })
+  })
+}) 
