@@ -69,8 +69,9 @@ generate_seqs <- function(n_seq, l_seq, motifs) {
 
 
 test_quipt <- function(simulated_seqs, n_seq, criterion, motifs) {
-  test_features(target = c(rep(1, n_seq), rep(0, n_seq)), features = simulated_seqs)
-  res_df <- data.frame(test_res)
+  
+  res_df <- test_features(target = c(rep(1, n_seq), rep(0, n_seq)), features = simulated_seqs) %>% 
+    data.frame()
   
   data.frame(#n_seq = n_seq, 
     #l_seq = l_seq, 
@@ -124,7 +125,10 @@ lapply(c(8, 12), function(l_seq) {
                  # n-grams without the motif (adjusted p-value)
                  n.neg.adj05 = sum(only_others[!noi, "p.value.adj"] < 0.05, na.rm = TRUE),
                  n.neg.adj001 = sum(only_others[!noi, "p.value.adj"] < 0.001, na.rm = TRUE)
-      )
-    })
-  })
-}) 
+      ) 
+    }) %>% 
+      do.call(rbind, .)
+  }) %>% 
+    do.call(rbind, .)
+}) %>% 
+  do.call(rbind, .)
