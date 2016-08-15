@@ -1,5 +1,6 @@
 library(biogram)
 library(dplyr)
+library(pbapply)
 
 sim_single_seq <- function(len, u)
   sample(u, size = len, replace = TRUE)
@@ -50,10 +51,6 @@ generate_motif <- function(u, n_motif) {
 
 
 
-# define alphabet
-alph <- as.character(1L:4)
-
-
 generate_seqs <- function(n_seq, l_seq, motifs) {
   # generate sequence data
   test_dat <- simulate_sequences(n_seq*2, l_seq, alph, motif_l = motifs)
@@ -80,10 +77,14 @@ test_quipt <- function(simulated_seqs, n_seq, criterion, motifs) {
     p.value.adj = p.adjust(res_df[["p.value"]], "BH"))
 }
 
+
+
+# define alphabet
+alph <- as.character(1L:4)
+
 # n_seq number of positive and negative sequences
 # l_seq length of sequence
-
-sim_res <- lapply(1L:5, function(replication) {
+sim_quipt <- pblapply(1L:10, function(replication) {
   lapply(c(250, 500, 1000), function(n_seq) {
     lapply(c(8, 12, 16, 20), function(l_seq) {
       motifs <- generate_motif(alph, 5)
@@ -135,3 +136,10 @@ sim_res <- lapply(1L:5, function(replication) {
     do.call(rbind, .)
 }) %>% 
   do.call(rbind, .)
+
+
+# mutate(sim_quipt, 
+#        motif_len = nchar(gsub(".", "", ngrams2df(as.character(motif))[["ngram"]], fixed = TRUE))) %>% 
+#   group_by(l_seq, n_seq, criterion, motif_len) %>% 
+#   summarise(min_p = min(p.value), max = max(p.value), nas = sum(is.na(p.value))) %>% 
+#   edit
