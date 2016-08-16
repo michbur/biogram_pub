@@ -137,11 +137,4 @@ sim_quipt <- pblapply(1L:10, function(replication) {
 }) %>% 
   do.call(rbind, .)
 
-
 write.csv(sim_quipt, file = "./results/sim1.csv")
-
-mutate(sim_quipt,
-       motif_len = nchar(gsub(".", "", ngrams2df(as.character(motif))[["ngram"]], fixed = TRUE))) %>%
-  group_by(l_seq, n_seq, criterion, motif_len) %>%
-  summarise(min_p = min(p.value), max = max(p.value), nas = sum(is.na(p.value))) %>%
-  edit
