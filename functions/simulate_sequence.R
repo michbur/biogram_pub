@@ -2,6 +2,7 @@ library(biogram)
 library(dplyr)
 library(pbapply)
 
+
 sim_single_seq <- function(len, u)
   sample(u, size = len, replace = TRUE)
 
@@ -84,9 +85,9 @@ alph <- as.character(1L:4)
 
 # n_seq number of positive and negative sequences
 # l_seq length of sequence
-sim_quipt <- pblapply(1L:10, function(replication) {
-  lapply(c(250, 500, 1000), function(n_seq) {
-    lapply(c(8, 12, 16, 20), function(l_seq) {
+sim_quipt <- pblapply(1L:20, function(replication) {
+  lapply(c(250, 500, 750, 1000), function(n_seq) {
+    lapply(c(8, 12, 16, 20, 24), function(l_seq) {
       motifs <- generate_motif(alph, 5)
       dat <- generate_seqs(n_seq, l_seq, motifs)
       
@@ -137,4 +138,5 @@ sim_quipt <- pblapply(1L:10, function(replication) {
 }) %>% 
   do.call(rbind, .)
 
-write.csv(sim_quipt, file = "./results/sim1.csv")
+write.csv(sim_quipt, file = "./results/sim2.csv")
+cat("", file = "/home/michal/Dropbox/done.txt")
