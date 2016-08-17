@@ -2,7 +2,6 @@ library(biogram)
 library(dplyr)
 library(pbapply)
 
-
 sim_single_seq <- function(len, u)
   sample(u, size = len, replace = TRUE)
 
@@ -139,4 +138,5 @@ sim_quipt <- pblapply(1L:20, function(replication) {
   do.call(rbind, .)
 
 write.csv(sim_quipt, file = "./results/sim2.csv")
+
 cat("", file = "/home/michal/Dropbox/done.txt")
