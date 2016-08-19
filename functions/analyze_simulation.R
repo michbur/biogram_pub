@@ -11,3 +11,9 @@ tm_pvals <- select(sim_quipt, l_seq, n_seq, criterion, p.value, motif_len)
 ggplot(tm_pvals, aes(x = criterion, y = p.value, color = as.factor(motif_len))) +
   geom_boxplot() +
   facet_grid(l_seq ~ n_seq, labeller = label_both)
+
+filter(sim_quipt, motif_len == 2) %>% 
+  mutate(frac05 = n.pos05/nnoi) %>% 
+  ggplot(aes(x = criterion, y = frac05)) +
+  geom_point() +
+  facet_grid(l_seq ~ n_seq, labeller = label_both)
