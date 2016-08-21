@@ -11,4 +11,4 @@ l_seq = 8
 motifs <- generate_motif(alph, 5)
 dat <- generate_seqs(n_seq, l_seq, motifs)
 
-Boruta(dat, c(rep(1, n_seq), rep(0, n_seq)))
+Boruta(as.matrix(dat), c(rep(1, n_seq), rep(0, n_seq)))
