@@ -5,9 +5,10 @@ alph <- as.character(1L:4)
 
 # n_seq number of positive and negative sequences
 # l_seq length of sequence
-sim_quipt <- pblapply(1L:20, function(replication) {
+sim_quipt <- pblapply(1L:2, function(replication) {
   lapply(c(250, 500, 750, 1000), function(n_seq) {
     lapply(c(8, 12, 16, 20, 24), function(l_seq) {
+      set.seed(replication)
       motifs <- generate_motif(alph, 5)
       dat <- generate_seqs(n_seq, l_seq, motifs)
       
@@ -58,6 +59,6 @@ sim_quipt <- pblapply(1L:20, function(replication) {
 }) %>% 
   do.call(rbind, .)
 
-write.csv(sim_quipt, file = "./results/sim2.csv")
+write.csv(sim_quipt, file = "./results/sim_evaluation.csv")
 
 cat("", file = "/home/michal/Dropbox/done.txt")
