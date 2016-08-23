@@ -20,3 +20,5 @@ filter(sim_quipt, motif_len == 2) %>%
   facet_grid(l_seq ~ n_seq, labeller = label_both)
 
 # its harder to find motifs containing the true motif the less sequences we have and the longer they are
+
+# no differences between citerions! how to create a scenario when difference will be visible?
