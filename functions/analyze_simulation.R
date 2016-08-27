@@ -2,7 +2,7 @@ library(dplyr)
 library(biogram)
 library(ggplot2)
 
-sim_quipt <- read.csv("./results/sim2.csv") %>%
+sim_quipt <- read.csv("./results/sim_evaluation50.csv") %>%
   mutate(motif_len = nchar(gsub(".", "", ngrams2df(as.character(motif))[["ngram"]], fixed = TRUE))) 
 
 # p-values of true motifs
