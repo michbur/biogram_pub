@@ -274,6 +274,36 @@ $$IG(Y|X) = H(Y) - H(Y|X)$$
 
 ## Encoding distance
 
+To compare the obtained encodings, we introduced the encoding distance, which is a 
+measure defining the similarity between two encodings. It assumes the value equal to zero for 
+identical encodings and grows with the differences between the encodings. This 
+parameter enabled us to select the encodings that were very similar to 
+the best-performing one and verify if they also show the good prediction performance.
+
+  We defined the encoding distance as the minimum number of amino acids that needed 
+to be moved between subgroups of the encoding \textit{a} to make it identical to 
+the encoding \textit{b} (the order of subgroups in encodings and the order of 
+amino acids in groups are not important). This measure was further scaled by a 
+factor reflecting how much the movement of amino acids between groups altered the mean 
+values of physicochemical properties in the groups. 
+
+  To compute the scale factor $s$ for the encoding distance between the encoding 
+\textit{a} with $n$ subgroups (enumerated with $i$) and the encoding \textit{b} 
+with $m$ subgroups (enumerated with $j$), we first calculated $p_i$ and $q_j$, 
+i.e. the mean values of corresponding physicochemical properties of all amino acids for each 
+subgroup. 
+
+The factor $s$ between encodings $a$ and $b$ is equal to: 
+
+$$ 
+s_{ab} = \sum^n_{i = 1}  \left( \min_{j=1,\dots,m} \; \; \sum^L_{l=1} \sqrt{ 
+(p_{i,l} - q_{j,l})^2} \right) 
+$$
+where $L$ is the number of considered physicochemical properties. Hence, the 
+normalizing factor may be interpreted as the minimum change of the mean 
+physicochemical properties between two considered encodings.
+
+
 The encoding distance, as computed per the calc_ed function, between a and b is defined as the minimum number of amino acids that have to be moved between subgroups of encoding to make a identical to b (the order of subgroups in the encoding and amino acids in a group is unimportant).
 
 The encoding distance may be further normalized by a factor reflecting how much moving amino acids between groups altered mean group properties.
