@@ -21,3 +21,29 @@ unlist(slam_size) %>%
   data.frame() %>%
   kable
   
+# real simulated example
+
+source("./functions/simulate_sequence.R")
+
+posssible_ngrams <- list(ns = c(1, 
+                                rep(2, 6), 
+                                rep(3, 9)), 
+     ds = c(0, as.list(0L:5), expand.grid(0L:2, 0L:2)  %>% split(1L:nrow(.)))
+)
+
+slam_size_dat <- lapply(1L:10000, function(dummy) sim_single_seq(len = 7, u = LETTERS[1L:20])) %>% 
+  do.call(rbind, .) %>% 
+  count_multigrams(ns = posssible_ngrams[["ns"]], ds = posssible_ngrams[["ds"]], seq = ., u = LETTERS[1L:20])
+
+save(slam_size_dat, file = "./results/slam_size_dat.RData")
+
+# lapply(c(1, 7, 16), function(n_ngram)
+# lapply(c(100, 500, 1000, 5000, 10000), function(n_seq) 
+#   data.frame(n_gram = n_gram,
+#              n_seq = n_seq,
+#              normal = format(object.size(dat[1L:nseq, 1L:n_ngram]), units = "B"),
+#              slam = format(object.size(as.matrix(dat[1L:nseq, 1L:n_ngram])), units = "B")
+#   )
+# )
+# )
+
