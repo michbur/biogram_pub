@@ -2,6 +2,7 @@ library(dplyr)
 library(magrittr)
 library(slam)
 library(knitr)
+library(reshape2)
 
 slam_size <- lapply(10^(1L:4), function(m_size) {
   m <- matrix(0, nrow = m_size, ncol = m_size)
@@ -31,19 +32,40 @@ posssible_ngrams <- list(ns = c(1,
      ds = c(0, as.list(0L:5), expand.grid(0L:2, 0L:2)  %>% split(1L:nrow(.)))
 )
 
-slam_size_dat <- lapply(1L:10000, function(dummy) sim_single_seq(len = 7, u = LETTERS[1L:20])) %>% 
-  do.call(rbind, .) %>% 
-  count_multigrams(ns = posssible_ngrams[["ns"]], ds = posssible_ngrams[["ds"]], seq = ., u = LETTERS[1L:20])
+# slam_size_dat <- lapply(1L:10000, function(dummy) sim_single_seq(len = 7, u = LETTERS[1L:20])) %>% 
+#   do.call(rbind, .) %>% 
+#   count_multigrams(ns = posssible_ngrams[["ns"]], ds = posssible_ngrams[["ds"]], seq = ., u = LETTERS[1L:20])
+#save(slam_size_dat, file = "./results/slam_size_dat.RData")
 
-save(slam_size_dat, file = "./results/slam_size_dat.RData")
+load("./results/slam_size_dat.RData")
 
-# lapply(c(1, 7, 16), function(n_ngram)
-# lapply(c(100, 500, 1000, 5000, 10000), function(n_seq) 
-#   data.frame(n_gram = n_gram,
-#              n_seq = n_seq,
-#              normal = format(object.size(dat[1L:nseq, 1L:n_ngram]), units = "B"),
-#              slam = format(object.size(as.matrix(dat[1L:nseq, 1L:n_ngram])), units = "B")
-#   )
-# )
-# )
+slam_summary <- lapply(c(20, 400*6 + 20), function(n_ngram)
+  lapply(1L:10*1000, function(n_seq)
+    data.frame(n_ngram = n_ngram,
+               n_seq = n_seq,
+               slam = format(object.size(slam_size_dat[1L:n_seq, 1L:n_ngram]), units = "B"),
+               normal = format(object.size(as.matrix(slam_size_dat[1L:n_seq, 1L:n_ngram])), units = "B")
+    )
+  ) %>% do.call(rbind, .)
+) %>% do.call(rbind, .) %>% 
+  mutate(ngrams = factor(n_ngram, labels = c("1-grams", "1- to 2-grams"))) %>% 
+  select(-n_ngram) %>% 
+  melt(id.vars = c("n_seq", "ngrams"), 
+       variable.name = "method", value.name = "size") %>% 
+  mutate(size = as.numeric(as.character(sub(" bytes", "", size))))
 
+format(object.size(slam_size_dat[, 1L:(400*6 + 20)]), units = "MB")
+# 4.2 Mb
+format(object.size(as.matrix(slam_size_dat[, 1L:(400*6 + 20)])), units = "MB")
+# 184.8 Mb
+
+save(slam_summary, file = "./results/slam_summary.RData")
+
+# library(ggplot2)
+# ggplot(slam_summary, aes(x = n_seq, y = size, color = method)) +
+#   geom_point() +
+#   scale_x_continuous("Number of sequences") +
+#   scale_y_continuous("Size [bytes]") +
+#   scale_color_discrete("Matrix type") +
+#   facet_wrap(~ ngrams, ncol = 1, scales = "free_y")
+# 
