@@ -76,8 +76,14 @@ alph <- generate_unigrams(c(replicate(8, props1, simplify = FALSE),
 #' @param prop_rules required intervals of properties of unigrams in the region. 
 #' See Detailes.
 generate_single_region <- function(alphabet, reg_len, prop_ranges) {
-  region <- c()
+  
   unigrams <- colnames(alphabet)
+  min_range <- sapply(prop_ranges, function(i) i[1])
+  max_range <- sapply(prop_ranges, function(i) i[2])
+  
+  unigrams <- names(which(apply(alphabet >= min_range & alphabet <= max_range, 2, all)))
+  
+  region <- c()
   for(i in 1L:reg_len) {
     region[i] <- sample(unigrams, 1)
   }
