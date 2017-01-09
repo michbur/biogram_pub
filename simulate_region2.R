@@ -26,12 +26,30 @@ generate_single_unigram(list(P1 = c(0, 0.5),
                              P3 = c(0.5, 1),
                              P4 = c(0, 0)))
 
-#' @param unigram_list named list. Names correspond to unigrams creating the 
-#' alphabet.
-generate_unigrams <- function(unigram_list) {
-  unigrams <- do.call(rbind, lapply(unigram_list, function(single_unigram) {
+#' @param unigram_list a list of unigrams' parameters. See Details.
+#' @param unigram_names names of unigrams. If not \code{NULL}, will
+#' overwrite any existing unigram names.
+#' @param prop_names names of properties. If not \code{NULL}, will 
+#' overwrite any existing names.
+#' @details Unigram parameters are represented as a list of ranges which contain 
+#' the property. All list of ranges should have the same length, which is an 
+#' equivalent of describing each unigram using the same properties. 
+generate_unigrams <- function(unigram_list,
+                              unigram_names = NULL,
+                              prop_names = NULL) {
+  if(length(unique(lengths(unigram_list))) != 1)
+    stop("All unigrams must be defined by the same number of properties (each element of \
+         unigram_list must have the same length).")
+  
+  unigrams <- do.call(cbind, lapply(unigram_list, function(single_unigram) {
     generate_single_unigram(single_unigram)
   }))
+
+  if(!is.null(prop_names)) 
+    rownames(unigrams) <- prop_names
+    
+  if(!is.null(unigram_names)) 
+    colnames(unigrams) <- unigram_names
   
   unigrams
 }
@@ -46,9 +64,31 @@ props2 <- list(P1 = c(0.5, 1),
                P3 = c(0, 0.5),
                P4 = c(1, 1))
 
-alph <- list(a = props1, 
-             b = props1, 
-             c = props1, 
-             d = props2,
-             e = props2)
-generate_unigrams(alph)
+
+alph <- generate_unigrams(c(replicate(8, props1, simplify = FALSE),
+                    replicate(12, props2, simplify = FALSE)),
+                    unigram_names = letters[1L:20])
+
+
+#' @param alphabet the unigram alphabet. Columns are equivalent to unigrams 
+#' and rows to particular properties.
+#' @param reg_len the number of unigrams inside the region.
+#' @param prop_rules required intervals of properties of unigrams in the region. 
+#' See Detailes.
+generate_single_region <- function(alphabet, reg_len, prop_ranges) {
+  region <- c()
+  unigrams <- colnames(alphabet)
+  for(i in 1L:reg_len) {
+    region[i] <- sample(unigrams, 1)
+  }
+  
+  region
+}
+
+rules1 <- list(
+    P1 = c(0.5, 1), 
+    P2 = c(0.4, 1),
+    P3 = c(0, 0.5),
+    P4 = c(1, 1))
+
+generate_single_region(alph, 10, rules1)
