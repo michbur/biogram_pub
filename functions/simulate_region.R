@@ -3,6 +3,12 @@ library(dplyr)
 library(infotheo)
 library(pbapply)
 
+# how it works? 
+# 1. generate properties
+# 2. generate rules for regions and how strictly regions adhere to these rules
+#  --rules rely on properties (e.g., region A should have aminoacids with high P1 
+#    property and low P2 property)
+#  --regions must have specified length
 
 generate_properties <- function(n_prop, u) {
   matrix(rnorm(20*n_prop), ncol = n_prop, dimnames = list(u))
@@ -11,6 +17,7 @@ generate_properties <- function(n_prop, u) {
 sim_single_seq <- function(len, u)
   sample(u, size = len, replace = TRUE)
 
+# @param seq sequence to which region should be added
 add_single_region <- function(seq, agg_alph, reg_len) {
   region_pos <- sample(1L:(length(seq) - reg_len + 1), 1)
   ids <- 0L:(reg_len - 1)
