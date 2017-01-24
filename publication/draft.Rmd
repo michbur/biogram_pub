@@ -9,6 +9,7 @@
  - multiple criteria
  - Compute how drastic must be the difference of fractions in both groups.  
  - Simulation study (motif length, sequence lenth, alphabet length) - sensitivity.
+ - influence of pairwise simularity on QuiPT.
 3. Results (what?)
 
 
