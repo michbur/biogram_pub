@@ -22,3 +22,11 @@ filter(sim_quipt, motif_len == 2) %>%
 # its harder to find motifs containing the true motif the less sequences we have and the longer they are
 
 # no differences between citerions! how to create a scenario when difference will be visible?
+
+filter(sim_quipt, criterion == "ig") %>% 
+  select(l_seq, n_seq, criterion, p.value, motif_len) %>% 
+  group_by(l_seq, n_seq, motif_len) %>% 
+  summarise(acc = mean(p.value < 0.05)) %>% 
+  ggplot(aes(x = factor(l_seq), y = factor(n_seq), fill = acc)) +
+  geom_tile(color = "black") +
+  facet_wrap(~ motif_len)
