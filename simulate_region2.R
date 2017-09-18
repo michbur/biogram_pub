@@ -15,7 +15,7 @@ library(pbapply)
 #' are preserved.
 generate_single_unigram <- function(unigram_ranges) {
   unigram_props <- lapply(unigram_ranges, function(i) {
-    runif(1, min = i[1], max = i[2])
+    round(runif(1, min = i[1], max = i[2]), 2)
   })
   names(unigram_props) <- names(unigram_ranges)
   unlist(unigram_props)
@@ -98,3 +98,55 @@ rules1 <- list(
     P4 = c(1, 1))
 
 generate_single_region(alph, 10, rules1)
+
+# simulation ------------------------------
+
+rules_set <- list(c(0, 0.5),
+                  c(0.5, 1),
+                  c(0.25, 0.75))
+
+
+# three groups of AAs
+set.seed(15390)
+aa_props1 <- sample(rules_set, 6, replace = TRUE)
+aa_props2 <- sample(rules_set, 6, replace = TRUE)
+aa_props3 <- sample(rules_set, 6, replace = TRUE)
+
+alph <- generate_unigrams(c(replicate(7, aa_props1, simplify = FALSE),
+                            replicate(7, aa_props2, simplify = FALSE),
+                            replicate(6, aa_props3, simplify = FALSE)),
+                          unigram_names = letters[1L:20])
+rownames(alph) <- paste0("P", 1L:5)
+
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+
+data.frame(alph) %>% 
+  mutate(prop = rownames(.)) %>% 
+  melt %>% 
+  ggplot(aes(x = variable, y = value)) +
+  geom_point() +
+  facet_wrap(~ prop)
+
+# two regions
+
+reg1_rules <- list(
+  P1 = c(0.5, 1), 
+  P2 = c(0, 0.25),
+  P3 = c(0.5, 1),
+  P4 = c(0, 1),
+  P5 = c(0, 1),
+  P6 = c(0, 1))
+
+reg2_rules <- list(
+  P1 = c(0, 0.5), 
+  P2 = c(0.25, 1),
+  P3 = c(0, 0.5),
+  P4 = c(0, 1),
+  P5 = c(0, 1),
+  P6 = c(0, 1))
+
+generate_single_region(alph, 10, rules1)
+
+
