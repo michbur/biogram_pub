@@ -83,12 +83,7 @@ generate_single_region <- function(alphabet, reg_len, prop_ranges) {
   
   unigrams <- names(which(apply(alphabet >= min_range & alphabet <= max_range, 2, all)))
   
-  region <- c()
-  for(i in 1L:reg_len) {
-    region[i] <- sample(unigrams, 1)
-  }
-  
-  region
+  sample(unigrams, reg_len, replace = TRUE)
 }
 
 rules1 <- list(
@@ -116,7 +111,7 @@ alph <- generate_unigrams(c(replicate(7, aa_props1, simplify = FALSE),
                             replicate(7, aa_props2, simplify = FALSE),
                             replicate(6, aa_props3, simplify = FALSE)),
                           unigram_names = letters[1L:20])
-rownames(alph) <- paste0("P", 1L:5)
+rownames(alph) <- paste0("P", 1L:6)
 
 library(dplyr)
 library(reshape2)
@@ -139,7 +134,7 @@ reg1_rules <- list(
   P5 = c(0, 1),
   P6 = c(0, 1))
 
-reg2_rules <- list(
+reg2_rulesA <- list(
   P1 = c(0, 0.5), 
   P2 = c(0.25, 1),
   P3 = c(0, 0.5),
@@ -147,6 +142,14 @@ reg2_rules <- list(
   P5 = c(0, 1),
   P6 = c(0, 1))
 
-generate_single_region(alph, 10, rules1)
+reg2_rulesB <- list(
+  P1 = c(0.25, 0.75), 
+  P2 = c(0.25, 1),
+  P3 = c(0, 0.75),
+  P4 = c(0.5, 1),
+  P5 = c(0, 1),
+  P6 = c(0, 1))
 
-
+generate_single_region(alph, 10, reg1_rules)
+generate_single_region(alph, 10, reg2_rulesA)
+generate_single_region(alph, 10, reg2_rulesA)
